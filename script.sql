@@ -10,7 +10,7 @@ create table if not exists country(
     countryId int primary key auto_increment not null,
     countryEngName varchar(255) not null,
     countryChiName varchar(255) not null,
-    -- 关联table school条目，待更新;
+    countryAndSchool JSON
 );
 
 create table if not exists school(
@@ -21,22 +21,23 @@ create table if not exists school(
     schoolType varchar(255) not null,
     province varchar(255) not null,
     officialWebLink varchar(255) not null,
-    schoolRemark JSON,
-    -- 关联table item条目，待更新；
-)；
+    schoolRemark varchar(4095),
+    schoolAndItem JSON
+);
 
 create table if not exists item(
     itemId int primary key auto_increment not null,
+    itemName varchar(255) not null,
     -- 对外展示比例需要按照用户level判断，关联类型条目;
-    itemRemark JSON,
-)
+    itemRemark varchar(4095)
+);
 
 create table if not exists user(
     userId int primary key auto_increment not null,
-    userAccount char(32) not null,
-    userPasswd char(32),
+    userAccount varchar(31) not null,
+    userPasswd varchar(31),
     userEmail varchar(255),
     userNumber varchar(255) not null,
     userLevel int not null,
-    studentCount int,
-)
+    studentCount int
+);
