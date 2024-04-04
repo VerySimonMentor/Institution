@@ -28,7 +28,7 @@ create table if not exists school(
 create table if not exists item(
     itemId int primary key auto_increment not null,
     itemName varchar(255) not null,
-    -- 对外展示比例需要按照用户level判断，关联类型条目;
+    externalDisplay JSON,
     itemRemark varchar(4095)
 );
 
