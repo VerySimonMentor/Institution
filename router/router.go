@@ -1,7 +1,7 @@
 package router
 
 import (
-	router "Institution/router/handlers/CRUD"
+	crud "Institution/router/handlers/CRUD"
 
 	"github.com/gin-gonic/gin"
 )
@@ -12,9 +12,12 @@ func RouterInit() *gin.Engine {
 	ginRouter := gin.Default()
 	ginRouter.LoadHTMLGlob("html/*")
 
-	ginRouter.GET("/country/create", router.CreateCountryHandler)
+	ginRouter.GET(("/"))
+	ginRouter.GET("/country/create", crud.CreateCountryHandler)
 
-	ginRouter.POST("/country/show", router.ShowCountryHandler)
+	ginRouter.POST("/country/show", crud.ShowCountryHandler)
+
+	ginRouter.DELETE("/country/delete", crud.DeleteCountryHandler)
 
 	return ginRouter
 }

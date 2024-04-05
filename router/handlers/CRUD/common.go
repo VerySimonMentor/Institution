@@ -1,4 +1,4 @@
-package router
+package CRUD
 
 type Country struct {
 	CountryId        int                 `json:"countryId"`
