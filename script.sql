@@ -10,7 +10,8 @@ create table if not exists country(
     countryId int primary key auto_increment not null,
     countryEngName varchar(255) not null,
     countryChiName varchar(255) not null,
-    countryAndSchool JSON
+    countryAndSchool JSON,
+    province JSON
 );
 
 create table if not exists school(
