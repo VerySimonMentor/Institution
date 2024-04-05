@@ -31,7 +31,7 @@ func DeleteCountryHandler(ctx *gin.Context) {
 		logs.GetInstance().Logger.Errorf("DeleteCountryHandler error %s", err)
 		return
 	}
-	var deleteCountry Country
+	var deleteCountry mysql.CountrySQL
 	if err := json.Unmarshal([]byte(deleteCountryString), &deleteCountry); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "json转换失败"})
 		logs.GetInstance().Logger.Errorf("DeleteCountryHandler error %s", err)
@@ -51,7 +51,7 @@ func DeleteCountryHandler(ctx *gin.Context) {
 
 	go func(countryId int) {
 		mysqlClient := mysql.GetClient()
-		err := mysqlClient.Where("countryId = ?", countryId).Delete(&Country{}).Error
+		err := mysqlClient.Where("countryId = ?", countryId).Delete(&mysql.CountrySQL{}).Error
 		if err != nil {
 			logs.GetInstance().Logger.Errorf("DeleteCountryHandler error %s", err)
 		}

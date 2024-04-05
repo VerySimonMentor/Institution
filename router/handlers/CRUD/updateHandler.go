@@ -32,7 +32,7 @@ func UpdateCountryHandler(ctx *gin.Context) {
 		logs.GetInstance().Logger.Errorf("UpdateCountryHandler error %s", err)
 		return
 	}
-	var updateCountry Country
+	var updateCountry mysql.CountrySQL
 	if err := json.Unmarshal([]byte(updateCountryString), &updateCountry); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "json转换失败"})
 		logs.GetInstance().Logger.Errorf("UpdateCountryHandler error %s", err)
@@ -97,7 +97,7 @@ func UpdateProvinceHandler(ctx *gin.Context) {
 		logs.GetInstance().Logger.Errorf("UpdateProvinceHandler error %s", err)
 		return
 	}
-	var updateCountry Country
+	var updateCountry mysql.CountrySQL
 	if err := json.Unmarshal([]byte(updateCountryString), &updateCountry); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "json转换失败"})
 		logs.GetInstance().Logger.Errorf("UpdateProvinceHandler error %s", err)
@@ -119,18 +119,13 @@ func UpdateProvinceHandler(ctx *gin.Context) {
 		return
 	}
 
-	var updateCountrySQL mysql.CountrySQL
-	updateCountrySQL.CountryId = updateCountry.CountryId
-	updateCountrySQL.CountryEngName = updateCountry.CountryEngName
-	updateCountrySQL.CountryChiName = updateCountry.CountryChiName
-	updateCountrySQL.Province, _ = json.Marshal(updateCountry.Province)
-	go func(updateCountrySQL mysql.CountrySQL) {
+	go func(updateCountry mysql.CountrySQL) {
 		mysqlClient := mysql.GetClient()
-		err := mysqlClient.Model(&mysql.CountrySQL{}).Where("countryId = ?", updateCountrySQL.CountryId).Updates(&updateCountrySQL).Error
+		err := mysqlClient.Model(&mysql.CountrySQL{}).Where("countryId = ?", updateCountry.CountryId).Updates(&updateCountry).Error
 		if err != nil {
 			logs.GetInstance().Logger.Errorf("UpdateProvinceHandler error %s", err)
 		}
-	}(updateCountrySQL)
+	}(updateCountry)
 
 	ctx.JSON(http.StatusOK, gin.H{"msg": "更新成功"})
 }

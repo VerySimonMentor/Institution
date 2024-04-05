@@ -1,11 +1,11 @@
 package mysql
 
 type CountrySQL struct {
-	CountryId        int    `gorm:"column:countryId" json:"countryId"`
-	CountryEngName   string `gorm:"column:countryEngName" json:"countryEngName"`
-	CountryChiName   string `gorm:"column:countryChiName" json:"countryChiName"`
-	CountryAndSchool []byte `gorm:"column:countryAndSchool" json:"countryAndSchool"`
-	Province         []byte `gorm:"column:province" json:"province"`
+	CountryId        int                 `gorm:"column:countryId" json:"countryId"`
+	CountryEngName   string              `gorm:"column:countryEngName" json:"countryEngName"`
+	CountryChiName   string              `gorm:"column:countryChiName" json:"countryChiName"`
+	CountryAndSchool map[int]struct{}    `gorm:"column:countryAndSchool" json:"countryAndSchool"`
+	Province         map[string]struct{} `gorm:"column:province" json:"province"`
 }
 
 func (c CountrySQL) TableName() string {
@@ -13,15 +13,15 @@ func (c CountrySQL) TableName() string {
 }
 
 type SchoolSQL struct {
-	SchoolId           int    `gorm:"column:schoolId"`
-	SchoolEngName      string `gorm:"column:schoolEngName"`
-	SchoolChiName      string `gorm:"column:schoolChiName"`
-	SchoolAbbreviation string `gorm:"column:schoolAbbreviation"`
-	SchoolType         string `gorm:"column:schoolType"`
-	Province           string `gorm:"column:province"`
-	OfficialWebLink    string `gorm:"column:officialWebLink"`
-	SchoolRemark       string `gorm:"column:schoolRemark"`
-	SchoolAndItem      []byte `gorm:"column:schoolAndItem"`
+	SchoolId           int              `gorm:"column:schoolId"`
+	SchoolEngName      string           `gorm:"column:schoolEngName"`
+	SchoolChiName      string           `gorm:"column:schoolChiName"`
+	SchoolAbbreviation string           `gorm:"column:schoolAbbreviation"`
+	SchoolType         string           `gorm:"column:schoolType"`
+	Province           string           `gorm:"column:province"`
+	OfficialWebLink    string           `gorm:"column:officialWebLink"`
+	SchoolRemark       string           `gorm:"column:schoolRemark"`
+	SchoolAndItem      map[int]struct{} `gorm:"column:schoolAndItem"`
 }
 
 func (s SchoolSQL) TableName() string {

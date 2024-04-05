@@ -14,7 +14,7 @@ import (
 func CreateCountryHandler(ctx *gin.Context) {
 	mysqlClient := mysql.GetClient()
 	redisClient := redis.GetClient()
-	country := Country{
+	country := mysql.CountrySQL{
 		CountryEngName:   "default",
 		CountryChiName:   "默认",
 		CountryAndSchool: make(map[int]struct{}),

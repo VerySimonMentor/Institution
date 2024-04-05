@@ -23,10 +23,10 @@ func pageRange(page, pageNum, countryNum int) (int, int) {
 	return start, end
 }
 
-func getCountryInRedis(ctx *gin.Context) []Country {
+func getCountryInRedis(ctx *gin.Context) []mysql.CountrySQL {
 	redisClient := redis.GetClient()
 	mysqlClient := mysql.GetClient()
-	countryList := make([]Country, 0)
+	countryList := make([]mysql.CountrySQL, 0)
 	if !checkCountryInRedis(ctx) {
 		if err := mysqlClient.Find(&countryList).Error; err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"err": "查询失败"})
@@ -58,7 +58,7 @@ func getCountryInRedis(ctx *gin.Context) []Country {
 		return nil
 	} else {
 		for _, country := range countryString {
-			var countryStruct Country
+			var countryStruct mysql.CountrySQL
 			if err := json.Unmarshal([]byte(country), &countryStruct); err != nil {
 				ctx.JSON(http.StatusInternalServerError, gin.H{"err": "json转换失败"})
 				logs.GetInstance().Logger.Errorf("ShowCountryHandler error %s", err)
