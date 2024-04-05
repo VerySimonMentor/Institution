@@ -10,12 +10,12 @@ import (
 
 func main() {
 	logs.GetInstance().Logger.Infof("logger start!")
-	config.InitServerConfig("conf/config.yaml")
+	config.InitServerConfig("config/config.yaml")
 	config := config.GetServerConfig()
 	logs.GetInstance().Logger.Infof("config %+v", config)
 	// redis.RedisInit(&config.Redis)
 	mysql.MysqlInit(config.MySQL)
-	ginRouter := router.RouterInit()
+	ginRouter := router.RouterInit(config)
 
 	ginRouter.Run(fmt.Sprintf(":%d", config.Server.Port))
 }

@@ -11,6 +11,7 @@ type Config struct {
 	Redis  RedisConfig  `yaml:"redis"`
 	MySQL  MySQLConfig  `yaml:"mysql"`
 	Server ServerConfig `yaml:"server"`
+	Admin  AdminConfig  `yaml:"admin"`
 }
 
 type RedisConfig struct {
@@ -28,6 +29,11 @@ type MySQLConfig struct {
 
 type ServerConfig struct {
 	Port int `yaml:"port"`
+}
+
+type AdminConfig struct {
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
 }
 
 // 初始化配置
