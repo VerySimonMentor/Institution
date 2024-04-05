@@ -5,6 +5,7 @@ type CountrySQL struct {
 	CountryEngName   string `gorm:"column:countryEngName" json:"countryEngName"`
 	CountryChiName   string `gorm:"column:countryChiName" json:"countryChiName"`
 	CountryAndSchool []byte `gorm:"column:countryAndSchool" json:"countryAndSchool"`
+	Province         []byte `gorm:"column:province" json:"province"`
 }
 
 func (c CountrySQL) TableName() string {
@@ -30,7 +31,8 @@ func (s SchoolSQL) TableName() string {
 type ItemSQL struct {
 	ItemId          int    `gorm:"column:itemId"`
 	ItemName        string `gorm:"column:itemName"`
-	ExternalDisplay []byte `gorm:"column:externalDisplay"`
+	LevelDescrption string `gorm:"column:levelDescrption"`
+	LevelRate       string `gorm:"column:levelRate"`
 	ItemRemark      string `gorm:"column:itemRemark"`
 }
 

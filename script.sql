@@ -30,7 +30,7 @@ create table if not exists item(
     itemId int primary key auto_increment not null,
     itemName varchar(255) not null,
     -- externalDisplay JSON,
-    levelDiscription varchar(255),
+    levelDescription varchar(255),
     levelRate JSON,
     itemRemark varchar(4095)
 );

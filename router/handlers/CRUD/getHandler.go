@@ -12,7 +12,7 @@ type GetCountryResp struct {
 }
 
 func GetCountryHandler(ctx *gin.Context) {
-	countryList := checkCountryInRedis(ctx)
+	countryList := getCountryInRedis(ctx)
 	if countryList == nil {
 		return
 	}

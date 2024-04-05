@@ -23,29 +23,36 @@ func pageRange(page, pageNum, countryNum int) (int, int) {
 	return start, end
 }
 
-func checkCountryInRedis(ctx *gin.Context) []Country {
+func getCountryInRedis(ctx *gin.Context) []Country {
 	redisClient := redis.GetClient()
 	mysqlClient := mysql.GetClient()
 	countryList := make([]Country, 0)
-	countryString, err := redisClient.LRange(context.Background(), "country", 0, -1).Result()
-	if redis.CheckNil(err) {
-		if err = mysqlClient.Find(&countryList).Error; err != nil {
+	if !checkCountryInRedis(ctx) {
+		if err := mysqlClient.Find(&countryList).Error; err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"msg": "查询失败"})
 			logs.GetInstance().Logger.Errorf("ShowCountryHandler error %s", err)
 			return nil
 		}
-		countryJSON, err := json.Marshal(countryList)
-		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"msg": "json转换失败"})
-			logs.GetInstance().Logger.Errorf("ShowCountryHandler error %s", err)
-			return nil
+		countryJSON := make([][]byte, len(countryList))
+		for i, country := range countryList {
+			var err error
+			countryJSON[i] = make([]byte, 0)
+			countryJSON[i], err = json.Marshal(country)
+			if err != nil {
+				ctx.JSON(http.StatusInternalServerError, gin.H{"msg": "json转换失败"})
+				logs.GetInstance().Logger.Errorf("ShowCountryHandler error %s", err)
+				return nil
+			}
 		}
-		if err = redisClient.Set(context.Background(), "country", countryJSON, 0).Err(); err != nil {
+		if err := redisClient.RPush(context.Background(), "country", countryJSON).Err(); err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"msg": "redis存储失败"})
 			logs.GetInstance().Logger.Errorf("ShowCountryHandler error %s", err)
 			return nil
 		}
-	} else if err != nil {
+	}
+
+	countryString, err := redisClient.LRange(context.Background(), "country", 0, -1).Result()
+	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": "redis查询失败"})
 		logs.GetInstance().Logger.Errorf("ShowCountryHandler error %s", err)
 		return nil
@@ -62,4 +69,21 @@ func checkCountryInRedis(ctx *gin.Context) []Country {
 	}
 
 	return countryList
+}
+
+func checkCountryInRedis(ctx *gin.Context) bool {
+	redisClient := redis.GetClient()
+	Keytype, err := redisClient.Type(context.Background(), "country").Result()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": "redis查询失败"})
+		logs.GetInstance().Logger.Errorf("ShowCountryHandler error %s", err)
+		return false
+	}
+	if Keytype != "list" {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": "redis类型错误"})
+		logs.GetInstance().Logger.Errorf("ShowCountryHandler error %s", err)
+		return false
+	}
+
+	return true
 }

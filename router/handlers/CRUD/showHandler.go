@@ -20,7 +20,7 @@ func ShowCountryHandler(ctx *gin.Context) {
 		return
 	}
 
-	countryList := checkCountryInRedis(ctx)
+	countryList := getCountryInRedis(ctx)
 	if countryList == nil {
 		return
 	}
