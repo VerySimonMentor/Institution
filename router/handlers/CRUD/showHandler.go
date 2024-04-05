@@ -15,7 +15,7 @@ type PageShow struct {
 func ShowCountryHandler(ctx *gin.Context) {
 	var pageShow PageShow
 	if err := ctx.ShouldBindJSON(&pageShow); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"msg": "参数错误"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"err": "参数错误"})
 		logs.GetInstance().Logger.Errorf("ShowCountryHandler error %s", err)
 		return
 	}

@@ -19,7 +19,7 @@ type DeleteForm struct {
 func DeleteCountryHandler(ctx *gin.Context) {
 	var deleteForm DeleteForm
 	if err := ctx.ShouldBindJSON(&deleteForm); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"msg": "参数错误"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"err": "参数错误"})
 		logs.GetInstance().Logger.Errorf("DeleteCountryHandler error %s", err)
 		return
 	}
@@ -27,31 +27,31 @@ func DeleteCountryHandler(ctx *gin.Context) {
 	redisClient := redis.GetClient()
 	deleteCountryString, err := redisClient.LIndex(context.Background(), "country", deleteForm.ListIndex).Result()
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": "redis查询失败"})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis查询失败"})
 		logs.GetInstance().Logger.Errorf("DeleteCountryHandler error %s", err)
 		return
 	}
-	var deleteCountry Country
+	var deleteCountry mysql.CountrySQL
 	if err := json.Unmarshal([]byte(deleteCountryString), &deleteCountry); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": "json转换失败"})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "json转换失败"})
 		logs.GetInstance().Logger.Errorf("DeleteCountryHandler error %s", err)
 		return
 	}
 	if deleteCountry.CountryId != deleteForm.CountryId {
-		ctx.JSON(http.StatusBadRequest, gin.H{"msg": "参数错误"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"err": "参数错误"})
 		logs.GetInstance().Logger.Errorf("DeleteCountryHandler error %s", err)
 		return
 	}
 	_, err = redisClient.LRem(context.Background(), "country", 0, deleteCountryString).Result()
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": "redis删除失败"})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis删除失败"})
 		logs.GetInstance().Logger.Errorf("DeleteCountryHandler error %s", err)
 		return
 	}
 
 	go func(countryId int) {
 		mysqlClient := mysql.GetClient()
-		err := mysqlClient.Where("countryId = ?", countryId).Delete(&Country{}).Error
+		err := mysqlClient.Where("countryId = ?", countryId).Delete(&mysql.CountrySQL{}).Error
 		if err != nil {
 			logs.GetInstance().Logger.Errorf("DeleteCountryHandler error %s", err)
 		}

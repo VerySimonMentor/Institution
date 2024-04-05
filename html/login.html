@@ -64,7 +64,7 @@
 </head>
 <body>
 	<div class="container">
-		<h1>Welcom to nas server</h1>
+		<h1>MENTOR</h1>
 		<form id="login-form" onsubmit="login(event)">
 			<div class="input-group">
 				<label for="username">Username:</label>
@@ -76,7 +76,7 @@
 			</div>
 			<input type="submit" class="btn" value="Login">
 		</form>
-		<p>Not registered yet? <a href="/register" class="register-link">Register</a></p>
+		<!-- <p>Not registered yet? <a href="/register" class="register-link">Register</a></p> -->
 	</div>
 
 	<script>
@@ -101,19 +101,19 @@
 			})
 			.then(response => response.json())
 			.then(data => {
-				if (data.error) {
-					alert(data.error);
+				if (data.err) {
+					alert(data.err);
 				} else {
-					document.cookie = "username=" + username;
-					window.location.href = "/home/" + username;
+					// document.cookie = "username=" + username;
+					window.location.href = "/manage";
 				}
 			});
 		}
-		const registerLink = document.querySelector('.registe-link');
-		registerLink.addEventListener('click', function(event) {
-			event.preventDefault();
-			window.location.href = '/register';
-		});
+		// const registerLink = document.querySelector('.registe-link');
+		// registerLink.addEventListener('click', function(event) {
+		// 	event.preventDefault();
+		// 	window.location.href = '/register';
+		// });
 	</script>
 </body>
 </html>
