@@ -23,15 +23,32 @@ func pageRange(page, pageNum, countryNum int) (int, int) {
 	return start, end
 }
 
-func getCountryInRedis(ctx *gin.Context) []mysql.CountrySQL {
+func getCountryInRedis(ctx *gin.Context) []Country {
 	redisClient := redis.GetClient()
 	mysqlClient := mysql.GetClient()
-	countryList := make([]mysql.CountrySQL, 0)
+	countryListSQL := make([]mysql.CountrySQL, 0)
 	if !checkCountryInRedis(ctx) {
-		if err := mysqlClient.Find(&countryList).Error; err != nil {
+		if err := mysqlClient.Model(&mysql.CountrySQL{}).Find(&countryListSQL).Error; err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"err": "查询失败"})
 			logs.GetInstance().Logger.Errorf("ShowCountryHandler error %s", err)
 			return nil
+		}
+		if len(countryListSQL) == 0 {
+			return make([]Country, 0)
+		}
+		countryList := make([]Country, len(countryListSQL))
+		for i, country := range countryListSQL {
+			countryAndSchool := make(map[int]struct{})
+			province := make(map[string]struct{})
+			json.Unmarshal(country.CountryAndSchool, &countryAndSchool)
+			json.Unmarshal(country.Province, &province)
+			countryList[i] = Country{
+				CountryId:        country.CountryId,
+				CountryEngName:   country.CountryEngName,
+				CountryChiName:   country.CountryChiName,
+				CountryAndSchool: countryAndSchool,
+				Province:         province,
+			}
 		}
 		countryJSON := make([][]byte, len(countryList))
 		for i, country := range countryList {
@@ -43,22 +60,23 @@ func getCountryInRedis(ctx *gin.Context) []mysql.CountrySQL {
 				logs.GetInstance().Logger.Errorf("ShowCountryHandler error %s", err)
 				return nil
 			}
-		}
-		if err := redisClient.RPush(context.Background(), "country", countryJSON).Err(); err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis存储失败"})
-			logs.GetInstance().Logger.Errorf("ShowCountryHandler error %s", err)
-			return nil
+			if err = redisClient.RPush(context.Background(), "country", countryJSON[i]).Err(); err != nil {
+				ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis存储失败"})
+				logs.GetInstance().Logger.Errorf("ShowCountryHandler error %s", err)
+				return nil
+			}
 		}
 	}
 
 	countryString, err := redisClient.LRange(context.Background(), "country", 0, -1).Result()
+	countryList := make([]Country, 0)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis查询失败"})
 		logs.GetInstance().Logger.Errorf("ShowCountryHandler error %s", err)
 		return nil
 	} else {
 		for _, country := range countryString {
-			var countryStruct mysql.CountrySQL
+			var countryStruct Country
 			if err := json.Unmarshal([]byte(country), &countryStruct); err != nil {
 				ctx.JSON(http.StatusInternalServerError, gin.H{"err": "json转换失败"})
 				logs.GetInstance().Logger.Errorf("ShowCountryHandler error %s", err)
@@ -73,15 +91,15 @@ func getCountryInRedis(ctx *gin.Context) []mysql.CountrySQL {
 
 func checkCountryInRedis(ctx *gin.Context) bool {
 	redisClient := redis.GetClient()
-	Keytype, err := redisClient.Type(context.Background(), "country").Result()
+	keytype, err := redisClient.Type(context.Background(), "country").Result()
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis查询失败"})
 		logs.GetInstance().Logger.Errorf("ShowCountryHandler error %s", err)
 		return false
 	}
-	if Keytype != "list" {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis类型错误"})
-		logs.GetInstance().Logger.Errorf("ShowCountryHandler error %s", err)
+	if keytype != "list" {
+		// ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis类型错误"})
+		// logs.GetInstance().Logger.Errorf("ShowCountryHandler error %s", err)
 		return false
 	}
 

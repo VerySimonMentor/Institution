@@ -110,7 +110,7 @@ func UpdateProvinceHandler(ctx *gin.Context) {
 	}
 	updateCountry.CountryEngName = updateCountryForm.CountryEngName
 	updateCountry.CountryChiName = updateCountryForm.CountryChiName
-	updateCountry.Province = updateCountryForm.Province
+	updateCountry.Province, _ = json.Marshal(updateCountryForm.Province)
 	updateCountryByte, _ := json.Marshal(updateCountry)
 	err = redisClient.LSet(ctx, "country", updateCountryForm.ListIndex, updateCountryByte).Err()
 	if err != nil {
