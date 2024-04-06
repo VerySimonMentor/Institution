@@ -13,6 +13,7 @@ type PageShow struct {
 }
 
 type CountryResp struct {
+	CountryId      int    `json:"countryId"`
 	CountryChiName string `json:"countryChiName"`
 	CountryEngName string `json:"countryEngName"`
 	SchoolNum      int    `json:"schoolNum"`
@@ -49,6 +50,7 @@ func ShowCountryHandler(ctx *gin.Context) {
 	for i := start; i < end; i++ {
 		index := (pageShow.Page-1)*pageShow.PageNum + i - start
 		countryResp[i-start] = CountryResp{
+			CountryId:      countryList[index].CountryId,
 			CountryChiName: countryList[index].CountryChiName,
 			CountryEngName: countryList[index].CountryEngName,
 			SchoolNum:      len(countryList[index].CountryAndSchool),
