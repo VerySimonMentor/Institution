@@ -17,7 +17,6 @@ type CountryResp struct {
 	CountryEngName string `json:"countryEngName"`
 	SchoolNum      int    `json:"schoolNum"`
 	ProvinceNum    int    `json:"provinceNum"`
-	TotalPage      int    `json:"totalPage"`
 }
 
 func ShowCountryHandler(ctx *gin.Context) {
@@ -45,17 +44,19 @@ func ShowCountryHandler(ctx *gin.Context) {
 	} else {
 		totalPage = countryNum/pageShow.PageNum + 1
 	}
+	// logs.GetInstance().Logger.Infof("start: %d, end: %d", start, end)
 	countryResp := make([]CountryResp, end-start)
 	for i := start; i < end; i++ {
-		index := (pageShow.Page-1)*pageShow.PageNum + i
+		index := (pageShow.Page-1)*pageShow.PageNum + i - start
 		countryResp[i-start] = CountryResp{
 			CountryChiName: countryList[index].CountryChiName,
 			CountryEngName: countryList[index].CountryEngName,
 			SchoolNum:      len(countryList[index].CountryAndSchool),
 			ProvinceNum:    len(countryList[index].Province),
-			TotalPage:      totalPage,
 		}
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"results": countryResp})
+	ctx.JSON(http.StatusOK, gin.H{"results": countryResp,
+		"totalPage": totalPage,
+	})
 }
