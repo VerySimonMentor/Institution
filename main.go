@@ -4,6 +4,7 @@ import (
 	"Institution/config"
 	"Institution/logs"
 	"Institution/mysql"
+	"Institution/redis"
 	"Institution/router"
 	"fmt"
 )
@@ -13,7 +14,7 @@ func main() {
 	config.InitServerConfig("config/config.yaml")
 	config := config.GetServerConfig()
 	logs.GetInstance().Logger.Infof("config %+v", config)
-	// redis.RedisInit(&config.Redis)
+	redis.RedisInit(&config.Redis)
 	mysql.MysqlInit(config.MySQL)
 	ginRouter := router.RouterInit(config)
 

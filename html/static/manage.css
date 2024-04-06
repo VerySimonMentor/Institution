@@ -8,8 +8,7 @@ body, h1, table, th, td {
   .main-container {
     display: grid;
     grid-template-areas: 
-      "header header"
-      "sidebar content";
+      "header header";
     grid-template-columns: 1fr 3fr;
   }
   
@@ -30,17 +29,27 @@ body, h1, table, th, td {
   }
   
   .sidebar {
-    grid-area: sidebar;
     background-color: #f2f2f2;
     height: 100vh; /* Example height */
     width: 20vw;
     position:fixed;
     top:80px
   }
+
+  .add-btn {
+    display: inline;
+    margin-top: 20px;
+    margin-left: 20px;
+    width: 100px;
+    height: 40px;
+  }
   
-  .content {
-    grid-area: content;
-    padding: 20px;
+  .country-content {
+    margin-left: 20vw;
+  }
+
+  .school-content {
+    margin-left: 20vw;
   }
   
   .toggle-switch {
@@ -50,9 +59,8 @@ body, h1, table, th, td {
   table {
     width: 1200px;
     border-collapse: collapse;
-    margin-left: 20vw;
-    margin-top: 0px;
-    margin-bottom: 200px;
+    margin-top: 20px;
+    margin-left: 10px;
   }
   
   th, td {
@@ -67,6 +75,7 @@ body, h1, table, th, td {
   
   .pagination {
     text-align: center;
+    margin-top: 20px;
   }
   
   .pagination a {
@@ -104,4 +113,61 @@ body, h1, table, th, td {
 
   .button-list button:active{
     background-color: #24061f;
+  }
+
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 80px;
+    height: 34px;
+    margin-left: 20px;
+  }
+
+  .switch input { 
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+  }
+
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+  }
+
+  input:checked + .slider {
+    background-color: #2196F3;
+  }
+
+  input:checked + .slider:before {
+    transform: translateX(46px);
+  }
+
+  .slider.round {
+    border-radius: 34px;
+  }
+
+  .slider.round:before {
+    border-radius: 50%;
+  }
+
+  .editable {
+    display: inline-block;
+    margin-left: 5px;
   }

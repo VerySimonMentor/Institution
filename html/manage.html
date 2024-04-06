@@ -3,8 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="/static/manage.css">
+<link rel="stylesheet" href="./static/manage.css">
 <title>配置管理系统</title>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="./script/manage.js"></script>
 </head>
 <body>
 
@@ -22,32 +25,57 @@
     <ul class="button-list">
         <li><button id="add-country">国家管理</button></li>
         <li><button id="add-school">学校管理</button></li>
-        <li><button id="add-city">项目管理</button></li>
-        <li><button id="add-city">用户管理</button></li>
+        <li><button id="add-item">项目管理</button></li>
+        <li><button id="add-user">用户管理</button></li>
     </ul>
   </aside>
 
-  <section class="content">
+  <section class="country-content">
+    <button class="add-btn" id="add-country-btn">添加国家</button>
 
-    <table>
+    <label class="switch">
+      <input type="checkbox">
+      <span class="slider round"></span>
+    </label>
+    
+    <div class="editable">可编辑</div>
+
+    <table id="country-table">
       <thead>
         <tr>
-          <th>国家编号</th>
+          <th>国家序号</th>
           <th>国家名称</th>
           <th>国家英文</th>
-          <th>备注</th>
           <th>学校数量</th>
           <th>省份数量</th>
           <th>操作</th>
         </tr>
       </thead>
-      <tbody>
-        <!-- Table rows will be populated here -->
-      </tbody>
+      <tbody></tbody>
     </table>
 
     <div class="pagination">
-      <!-- Pagination here -->
+      <a href="#" class="page-link" data-page="1">1</a>
+    </div>
+  </section>
+
+  <section class="school-content" style="display: none;">
+    <table>
+      <thead>
+        <tr>
+          <th>学校序号</th>
+          <th>学校名称</th>
+          <th>学校英文</th>
+          <th>备注</th>
+          <th>国家</th>
+          <th>省份</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+    </table>
+
+    <div class="pagination">
+      <a href="#" class="page-link" data-page="${1}">${1}</a>
     </div>
   </section>
 </div>

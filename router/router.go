@@ -15,6 +15,7 @@ func RouterInit(config *config.Config) *gin.Engine {
 	ginRouter := gin.Default()
 	ginRouter.LoadHTMLGlob("html/*.html")
 	ginRouter.Static("/static", "html/static")
+	ginRouter.Static("/script", "html/script")
 
 	ginRouter.GET("/", func(ctx *gin.Context) {
 		ctx.Redirect(http.StatusFound, "/login")
