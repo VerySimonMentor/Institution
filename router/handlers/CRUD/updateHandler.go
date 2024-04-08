@@ -32,7 +32,7 @@ func UpdateCountryHandler(ctx *gin.Context) {
 		logs.GetInstance().Logger.Errorf("UpdateCountryHandler error %s", err)
 		return
 	}
-	var updateCountry mysql.CountrySQL
+	var updateCountry Country
 	if err := json.Unmarshal([]byte(updateCountryString), &updateCountry); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "json转换失败"})
 		logs.GetInstance().Logger.Errorf("UpdateCountryHandler error %s", err)
@@ -40,7 +40,7 @@ func UpdateCountryHandler(ctx *gin.Context) {
 	}
 	if updateCountry.CountryId != updateCountryForm.CountryId {
 		ctx.JSON(http.StatusBadRequest, gin.H{"err": "参数错误"})
-		logs.GetInstance().Logger.Errorf("UpdateCountryHandler error %s", err)
+		logs.GetInstance().Logger.Errorf("UpdateCountryHandler error %d != %d", updateCountry.CountryId, updateCountryForm.CountryId)
 		return
 	}
 
