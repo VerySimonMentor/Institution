@@ -20,7 +20,7 @@ body, h1, table, th, td {
     padding: 20px;
     background-color: #007bff;
     color: white;
-    height: 40px
+    height: 40px;
   }
   
   .search-container input,
@@ -33,7 +33,8 @@ body, h1, table, th, td {
     height: 100vh; /* Example height */
     width: 20vw;
     position:fixed;
-    top:80px
+    top:80px;
+    z-index: 9999;
   }
 
   .add-btn {
@@ -54,13 +55,6 @@ body, h1, table, th, td {
   
   .toggle-switch {
     margin-bottom: 10px;
-  }
-  
-  table {
-    width: 1200px;
-    border-collapse: collapse;
-    margin-top: 20px;
-    margin-left: 10px;
   }
   
   th, td {
@@ -194,3 +188,54 @@ body, h1, table, th, td {
     width: 200px;
     height: 40px;
   }
+
+  #country-table{
+    width: 1200px;
+    border-collapse: collapse;
+    margin-top: 20px;
+    margin-left: 10px;
+  }
+
+  #school-table{
+    width: 1200px;
+    border-collapse: collapse;
+    margin-top: 20px;
+    margin-left: 10px;
+  }
+
+  #item-table{
+    width: 1200px;
+    border-collapse: collapse;
+    margin-top: 20px;
+    margin-left: 10px;
+  }
+
+  #user-table{
+    width: 1200px;
+    border-collapse: collapse;
+    margin-top: 20px;
+    margin-left: 10px;
+  }
+
+  #system-table{
+    width: 600px;
+    border-collapse: collapse;
+    margin-top: 20px;
+    margin-left: 10px;
+  }
+
+  .user-level-container{
+    display: flex;
+  }
+
+  .userlevelpage{
+    margin-left: 20px;
+    margin-bottom: 5px;
+    margin-top: 5px;
+    margin-right: 50px;
+  }
+
+  #userlevelInput{
+    margin-top: 20px;
+  }
+

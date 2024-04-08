@@ -117,4 +117,23 @@ $(document).ready(function() {
             }
         });
     }
+
+    $(".button-list-button").click(function() {
+        //获取button id
+        var buttonId = $(this).attr("id");
+        //隐藏所有section
+        $("#manage-country-content").css("display", "none");
+        $("#manage-school-content").css("display", "none");
+        $("#manage-item-content").css("display", "none");
+        $("#manage-user-content").css("display", "none");
+        $("#system-set-content").css("display", "none");
+        //根据button id显示对应的section
+        $('#' + buttonId + '-content') 
+            .css("display", "block")
+            .css({
+                "position": "absolute", // 使用绝对定位
+                "top": "80px", // 距离顶部100px
+                "left": "20vw" // 距离左侧50px
+            });
+    });
 });
