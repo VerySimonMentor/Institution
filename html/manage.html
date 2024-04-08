@@ -23,14 +23,16 @@
   <aside class="sidebar">
     <!-- Sidebar content here -->
     <ul class="button-list">
-        <li><button id="add-country">国家管理</button></li>
-        <li><button id="add-school">学校管理</button></li>
-        <li><button id="add-item">项目管理</button></li>
-        <li><button id="add-user">用户管理</button></li>
+        <li><button class="button-list-button" id="manage-country">国家管理</button></li>
+        <li><button class="button-list-button" id="manage-school">学校管理</button></li>
+        <li><button class="button-list-button" id="manage-item">项目管理</button></li>
+        <li><button class="button-list-button" id="manage-user">用户管理</button></li>
+        <li><button class="button-list-button" id="system-set">系统设置</button></li>
     </ul>
   </aside>
 
-  <section class="country-content">
+  <section class=“content” id="manage-country-content" style="position: absolute; top: 80px; left: 20vw">
+  <!-- <section class=“content” id="manage-country-content" style="display: none;"> -->
     <button class="add-btn" id="add-country-btn">添加国家</button>
 
     <label class="switch" id="country-switch">
@@ -54,12 +56,12 @@
       <tbody></tbody>
     </table>
 
-    <div class="pagination">
+    <div class="pagination" id="country-pagination">
       <!-- <a href="#" class="page-link" data-page="1">1</a> -->
     </div>
   </section>
 
-  <section class="school-content" style="display: none;">
+  <section class=“content” id="manage-school-content" style="display: none;">
     <!-- school management -->
     <select id="country-select">
       <option value="0">请选择国家</option>
@@ -74,7 +76,7 @@
     </label>
 
     <div class="editable">可编辑</div>
-    <table>
+    <table id="school-table">
       <thead>
         <tr>
           <th>学校序号</th>
@@ -87,12 +89,12 @@
         </tr>
       </thead>
     </table>
-    <div class="pagination">
-      <a href="#" class="page-link" data-page="${1}">1</a>
+    <div class="pagination" id="school-pagination">
+      <!-- <a href="#" class="page-link" data-page="${1}">1</a> -->
     </div>
   </section>
 
-  <section class="item-content" style="display: none;">
+  <section class=“content” id="manage-item-content" style="display: none;">
     <!-- item management -->
     <select id="country-select">
       <option value="0">请选择国家</option>
@@ -113,7 +115,7 @@
 
     <div class="editable">可编辑</div>
 
-    <table>
+    <table id="item-table">
       <thead>
         <tr>
           <th>项目编号</th>
@@ -126,15 +128,15 @@
       </thead>
     </table>
 
-    <div class="pagination">
-      <a href="#" class="page-link" data-page="1">1</a>
+    <div class="pagination" id="item-pagination">
+      <!-- <a href="#" class="page-link" data-page="1">1</a> -->
     </div>
   </section>
 
-  <section class="user-content" style="display: none;">
+  <section class=“content” id="manage-user-content" style="display: none;">
     <!-- user management -->
 
-    <button class="add-btn" id="add-item-btn">添加用户</button>
+    <button class="add-btn" id="add-user-btn">添加用户</button>
 
     <label class="switch">
       <input type="checkbox">
@@ -143,7 +145,7 @@
 
     <div class="editable">可编辑</div>
 
-    <table>
+    <table id="user-table">
       <thead>
         <tr>
           <th>编号</th>
@@ -157,8 +159,32 @@
       </thead>
     </table>
 
-    <div class="pagination">
-      <a href="#" class="page-link" data-page="1">1</a>
+    <div class="pagination" id="user-pagination">
+      <!-- <a href="#" class="page-link" data-page="1">1</a> -->
+    </div>
+  </section>
+
+  <section class=“content” id="system-set-content" style="display: none">
+    <!-- user management -->
+
+    <div class="user-level-container">
+      <div class="userlevelpage">用户level数</div>
+      <input type="text" id="userlevelInput" placeholder="请输入level数">
+    </div>
+
+    <div class="userlevelpage">学校类型列表</div>
+
+    <table id="system-table">
+      <thead>
+        <tr>
+          <th>类型ID</th>
+          <th>类型</th>
+        </tr>
+      </thead>
+    </table>
+
+    <div class="pagination" id="user-pagination">
+      <!-- <a href="#" class="page-link" data-page="1">1</a> -->
     </div>
   </section>
 
