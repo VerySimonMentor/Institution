@@ -31,7 +31,7 @@ func DeleteCountryHandler(ctx *gin.Context) {
 		logs.GetInstance().Logger.Errorf("DeleteCountryHandler error %s", err)
 		return
 	}
-	var deleteCountry mysql.CountrySQL
+	var deleteCountry Country
 	if err := json.Unmarshal([]byte(deleteCountryString), &deleteCountry); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "json转换失败"})
 		logs.GetInstance().Logger.Errorf("DeleteCountryHandler error %s", err)
