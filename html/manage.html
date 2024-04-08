@@ -60,6 +60,20 @@
   </section>
 
   <section class="school-content" style="display: none;">
+    <!-- school management -->
+    <select id="country-select">
+      <option value="0">请选择国家</option>
+      <option value="1">中华人民共和国</option>
+    </select>
+
+    <button class="add-btn" id="add-school-btn">添加学校</button>
+
+    <label class="switch">
+      <input type="checkbox">
+      <span class="slider round"></span>
+    </label>
+
+    <div class="editable">可编辑</div>
     <table>
       <thead>
         <tr>
@@ -73,11 +87,81 @@
         </tr>
       </thead>
     </table>
-
     <div class="pagination">
-      <a href="#" class="page-link" data-page="${1}">${1}</a>
+      <a href="#" class="page-link" data-page="${1}">1</a>
     </div>
   </section>
+
+  <section class="item-content" style="display: none;">
+    <!-- item management -->
+    <select id="country-select">
+      <option value="0">请选择国家</option>
+      <option value="1">中华人民共和国</option>
+    </select>
+
+    <select id="school-select">
+      <option value="0">请选择学校</option>
+      <option value="1">大连民族大学大大学</option>
+    </select>
+
+    <button class="add-btn" id="add-item-btn">添加项目</button>
+
+    <label class="switch">
+      <input type="checkbox">
+      <span class="slider round"></span>
+    </label>
+
+    <div class="editable">可编辑</div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>项目编号</th>
+          <th>项目名称</th>
+          <th>展示文字</th>
+          <th>备注</th>
+          <th>分级数量</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+    </table>
+
+    <div class="pagination">
+      <a href="#" class="page-link" data-page="1">1</a>
+    </div>
+  </section>
+
+  <section class="user-content" style="display: none;">
+    <!-- user management -->
+
+    <button class="add-btn" id="add-item-btn">添加用户</button>
+
+    <label class="switch">
+      <input type="checkbox">
+      <span class="slider round"></span>
+    </label>
+
+    <div class="editable">可编辑</div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>编号</th>
+          <th>姓名</th>
+          <th>邮箱</th>
+          <th>手机号</th>
+          <th>level</th>
+          <th>学生数量</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+    </table>
+
+    <div class="pagination">
+      <a href="#" class="page-link" data-page="1">1</a>
+    </div>
+  </section>
+
 </div>
 
 </body>

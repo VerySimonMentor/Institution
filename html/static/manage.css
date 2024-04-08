@@ -172,3 +172,25 @@ body, h1, table, th, td {
     display: inline-block;
     margin-left: 5px;
   }
+
+  #country-select {
+    background-color: #f0f0f0;
+    color: #2e0d0d;
+    border: 2px solid #ccc;
+    border-radius: 1px;
+    padding: 5px;
+    margin-left: 10px;
+    width: 200px;
+    height: 40px;
+  }
+
+  #school-select {
+    background-color: #f0f0f0;
+    color: #2e0d0d;
+    border: 2px solid #ccc;
+    border-radius: 1px;
+    padding: 5px;
+    margin-left: 10px;
+    width: 200px;
+    height: 40px;
+  }
