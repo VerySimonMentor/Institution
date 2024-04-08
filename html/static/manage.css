@@ -79,6 +79,7 @@ body, h1, table, th, td {
   }
   
   .pagination a {
+    /* display: ; */
     margin: 0 5px;
     padding: 5px 10px;
     border: 1px solid #ddd;

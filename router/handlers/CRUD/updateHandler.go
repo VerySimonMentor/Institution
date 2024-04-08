@@ -13,7 +13,7 @@ import (
 type UpdateCountryForm struct {
 	CountryId   int         `json:"countryId"`
 	ListIndex   int64       `json:"listIndex"`
-	UpdateFeild string      `json:"updateFeild"`
+	UpdateField string      `json:"updateField"`
 	UpdateValue interface{} `json:"updateValue"`
 }
 
@@ -44,10 +44,10 @@ func UpdateCountryHandler(ctx *gin.Context) {
 		return
 	}
 
-	switch updateCountryForm.UpdateFeild {
-	case "CountryEngName":
+	switch updateCountryForm.UpdateField {
+	case "countryEngName":
 		updateCountry.CountryEngName = updateCountryForm.UpdateValue.(string)
-	case "CountryChiName":
+	case "countryChiName":
 		updateCountry.CountryChiName = updateCountryForm.UpdateValue.(string)
 	}
 	updateCountryByte, _ := json.Marshal(updateCountry)
@@ -65,7 +65,7 @@ func UpdateCountryHandler(ctx *gin.Context) {
 
 	go func(updateCountryForm UpdateCountryForm) {
 		mysqlClient := mysql.GetClient()
-		err := mysqlClient.Model(&mysql.CountrySQL{}).Where("countryId = ?", updateCountryForm.CountryId).UpdateColumn(updateCountryForm.UpdateFeild, updateCountryForm.UpdateValue.(string)).Error
+		err := mysqlClient.Model(&mysql.CountrySQL{}).Where("countryId = ?", updateCountryForm.CountryId).UpdateColumn(updateCountryForm.UpdateField, updateCountryForm.UpdateValue.(string)).Error
 		if err != nil {
 			logs.GetInstance().Logger.Errorf("UpdateCountryHandler error %s", err)
 		}
