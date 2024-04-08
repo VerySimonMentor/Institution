@@ -3,7 +3,7 @@ var currentPage = 1;
 var totalPage;
 
 $(document).ready(function() {
-    function fetchData(page = currentPage) {
+    function fetchCountryData(page = currentPage) {
         var data = {
             page: page,
             pageNum: pageNum
@@ -68,16 +68,24 @@ $(document).ready(function() {
                                 },
                                 data: JSON.stringify(data),
                                 success: function(data) {
-                                    fetchData(currentPage);
+                                    if (table.children().length === 1) {
+                                        $('#country-pagination').children().last().remove();
+                                        if (currentPage == 0) {
+                                            currentPage = 1;
+                                        } else {
+                                            currentPage--;
+                                        }
+                                    }
+                                    fetchCountryData(currentPage);
                                 }
                             });
                         }
                     })(data.results[i].countryId, listIndex));
                 }
 
-                $('.pagination').empty();
+                $('#country-pagination').empty();
                 for (let i = 1; i <= data.totalPage; i++) {
-                    $('.pagination').append(`<a class="page-link" href="#" data-page="${i}">${i}</a>`);
+                    $('#country-pagination').append(`<a class="page-link" href="#" data-page="${i}">${i}</a>`);
                 }
 
                 $('#add-country-btn').prop('disabled', readonly);
@@ -88,16 +96,16 @@ $(document).ready(function() {
     $(document).on('click', '.page-link', function(e) {
         e.preventDefault();
         currentPage = $(this).data('page');
-        fetchData(currentPage);
+        fetchCountryData(currentPage);
     });
 
     $("#add-country-btn").click(function() {
         if (currentPage != totalPage) {
             currentPage = totalPage;
-            fetchData(currentPage);
+            fetchCountryData(currentPage);
         }
         $.get("/country/create", {pageNum: pageNum}, function(response) {
-            fetchData(response.totalPage);
+            fetchCountryData(response.totalPage);
         });
     });
 
@@ -150,6 +158,6 @@ $(document).ready(function() {
             });
     });
 
-    fetchData();
+    fetchCountryData();
     initCountry();
 });
