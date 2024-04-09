@@ -241,16 +241,17 @@ body, h1, table, th, td {
 
 /* 模态对话框 */
 .modal {
-  display: block; /* 默认隐藏 */
+  display: none; /* 默认隐藏 */
   position: fixed; /* Stay in place */
   z-index: 1; /* Sit on top */
-  left: 20vw;
-  top: 20vw;
+  left: 25vw;
+  top: 15vw;
   width: 600px; /* Full width */
   height: 400px; /* Full height */
   overflow: auto; /* Enable scroll if needed */
   background-color: rgb(0,0,0); /* Fallback color */
   background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+  z-index: 10000;
 }
 
 /* 模态对话框内容 */
@@ -282,10 +283,16 @@ body, h1, table, th, td {
   display: flex;
   gap: 20px;
 }
-#province-table{
+#province-table-container{
   margin-top: 5px;
   width: 600px;
   height: 250px;
+  border-collapse: collapse;
+  overflow-y: auto;
+}
+#province-table{
+  width: 100%;
+  height: 100%;
   border-collapse: collapse;
 }
 /* 表格展示end */

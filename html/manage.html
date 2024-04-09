@@ -31,8 +31,8 @@
     </ul>
   </aside>
 
-  <!-- <section class=“content” id="manage-country-content" style="position: absolute; top: 80px; left: 20vw"> -->
-  <section class=“content” id="manage-country-content" style="display: none;">
+  <section class=“content” id="manage-country-content" style="position: absolute; top: 80px; left: 20vw">
+  <!-- <section class=“content” id="manage-country-content" style="display: none;"> -->
     <button class="add-btn" id="add-country-btn">添加国家</button>
 
     <label class="switch" id="country-switch">
@@ -202,6 +202,10 @@
 
     <div class="province-table-container">
       <div class="province-table-title">国家下的省份列表</div>
+      <button class="modal-button" id="add-province-btn">添加</button>
+    </div>
+    
+    <div id="province-table-container">
       <table id="province-table">
         <thead>
           <tr>
@@ -212,14 +216,14 @@
           </tr>
         </thead>
         <tbody>
-
+  
         </tbody>
       </table>
     </div>
 
     <div class="save-btn-container">
-      <button class="modal button" id="save-province-btn">保存</button>
-      <button class="modal button" id="cancel-province-btn">取消</button>
+      <button class="modal-button" id="save-province-btn">保存</button>
+      <button class="modal-button" id="cancel-province-btn">取消</button>
     </div>
   </section>
 </div>

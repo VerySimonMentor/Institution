@@ -79,6 +79,58 @@ $(document).ready(function() {
                             });
                         }
                     })(data.results[i].countryId, listIndex));
+                    row.find('.btn-province').click((function(countryId, listIndex, currentPage) {
+                        return function() {
+                            var data = {
+                                countryId: countryId,
+                                listIndex: listIndex - 1,
+                            }
+                            $.ajax({
+                                url: '/country/changeProvince/show',
+                                type: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                data: JSON.stringify(data),
+                                success: function(data) {
+                                    $('.modal').css('display', 'block');
+                                    $("#manage-country-content").css('pointer-events', 'none');
+                                    $("#manage-country-content").css('opacity', '0.5');
+                                    $('#chinese-name-input').val(data.country.countryChiName);
+                                    $('#english-name-input').val(data.country.countryEngName);
+                                    $('#save-province-btn').click((function(){
+                                        return function(){
+                                            var province = getProvinceData();
+                                            var countryChiName = $('#chinese-name-input').val();
+                                            var countryEngName = $('#english-name-input').val();
+                                            var data = {
+                                                countryId: countryId,
+                                                listIndex: listIndex-1,
+                                                countryChiName: countryChiName,
+                                                countryEngName: countryEngName,
+                                                province: province
+                                            }
+                                            $.ajax({
+                                                url: '/country/changeProvince/save',
+                                                type: 'POST',
+                                                headers: {
+                                                    'Content-Type': 'application/json'
+                                                },
+                                                data: JSON.stringify(data),
+                                                success: function(data) {
+                                                    $('.modal').css('display', 'none');
+                                                    $("#manage-country-content").css('pointer-events', 'auto');
+                                                    $("#manage-country-content").css('opacity', '1');
+                                                    fetchCountryData(currentPage);
+                                                }
+                                            });
+                                        }
+                                    })(data.country.countryId, listIndex));
+                                    fetchProvinceData(data.country.province);
+                                }
+                            });
+                        }//
+                    })(data.results[i].countryId, listIndex, currentPage));
                 }
 
                 $('#country-pagination').empty();
@@ -155,6 +207,55 @@ $(document).ready(function() {
                 "left": "20vw" // 距离左侧50px
             });
     });
+
+    function fetchProvinceData(province) {
+        var table = $('#province-table tbody');
+        table.empty();
+        for (let i=0; i<province.length; i++) {
+            var chiNameText = $(`<input type="text" class="input-text" value="${province[i].chiName}" />`);
+            var engNameText = $(`<input type="text" class="input-text" value="${province[i].engName}" />`);
+            var row = $(
+                `<tr>
+                    <td>${i+1}</td>
+                    <td>${chiNameText.prop('outerHTML')}</td>
+                    <td>${engNameText.prop('outerHTML')}</td>
+                    <td>
+                        <a href=# class="btn btn-province-delete">删除</a>
+                    </td>
+                </tr>`
+            );
+            row.find('.btn-province-delete').click((function(province, i){
+                return function() {
+                    province = getProvinceData();
+                    province.splice(i, 1);
+                    fetchProvinceData(province);
+                }
+            })(province, i));
+            table.append(row);
+        }
+    }
+
+    function getProvinceData() {
+        var province = [];
+        $('#province-table tbody tr').each(function() {
+            var chiName = $(this).find('input.input-text').eq(0).val();
+            var engName = $(this).find('input.input-text').eq(1).val();
+            province.push({chiName: chiName, engName: engName});
+        });
+        return province;
+    }
+
+    $('#add-province-btn').click(function(){
+        province = getProvinceData();
+        province.push({chiName: "新省份", engName: "New Province"});
+        fetchProvinceData(province);
+    })
+
+    $('#cancel-province-btn').click(function(){
+        $('.modal').css('display', 'none');
+        $("#manage-country-content").css('pointer-events', 'auto');
+        $("#manage-country-content").css('opacity', '1');
+    })
 
     fetchCountryData();
     initCountry();
