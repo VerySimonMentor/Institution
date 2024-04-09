@@ -31,8 +31,8 @@
     </ul>
   </aside>
 
-  <!-- <section class=“content” id="manage-country-content" style="position: absolute; top: 80px; left: 20vw"> -->
-  <section class=“content” id="manage-country-content" style="display: none;">
+  <section class=“content” id="manage-country-content" style="position: absolute; top: 80px; left: 20vw">
+  <!-- <section class=“content” id="manage-country-content" style="display: none;"> -->
     <button class="add-btn" id="add-country-btn">添加国家</button>
 
     <label class="switch" id="country-switch">
@@ -205,19 +205,21 @@
       <button class="modal-button" id="add-province-btn">添加</button>
     </div>
     
-    <table id="province-table">
-      <thead>
-        <tr>
-          <th>编号</th>
-          <th>中文名称</th>
-          <th>英文名称</th>
-          <th>操作</th>
-        </tr>
-      </thead>
-      <tbody>
-
-      </tbody>
-    </table>
+    <div id="province-table-container">
+      <table id="province-table">
+        <thead>
+          <tr>
+            <th>编号</th>
+            <th>中文名称</th>
+            <th>英文名称</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+  
+        </tbody>
+      </table>
+    </div>
 
     <div class="save-btn-container">
       <button class="modal-button" id="save-province-btn">保存</button>
