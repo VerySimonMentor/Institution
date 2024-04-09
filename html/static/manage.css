@@ -244,8 +244,8 @@ body, h1, table, th, td {
   display: block; /* 默认隐藏 */
   position: fixed; /* Stay in place */
   z-index: 1; /* Sit on top */
-  left: 20vw;
-  top: 20vw;
+  left: 25vw;
+  top: 15vw;
   width: 600px; /* Full width */
   height: 400px; /* Full height */
   overflow: auto; /* Enable scroll if needed */
