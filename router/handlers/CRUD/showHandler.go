@@ -2,6 +2,8 @@ package CRUD
 
 import (
 	"Institution/logs"
+	"Institution/redis"
+	"encoding/json"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -61,4 +63,34 @@ func ShowCountryHandler(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"results": countryResp,
 		"totalPage": totalPage,
 	})
+}
+
+func ShowProvinceHandler(ctx *gin.Context) {
+	var provinceForm InstanceForm
+	if err := ctx.ShouldBindJSON(&provinceForm); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"err": "参数错误"})
+		logs.GetInstance().Logger.Errorf("ShowProvinceHandler error %s", err)
+		return
+	}
+
+	redisClient := redis.GetClient()
+	countryString, err := redisClient.LIndex(ctx, "country", provinceForm.ListIndex).Result()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis查询失败"})
+		logs.GetInstance().Logger.Errorf("ShowProvinceHandler error %s", err)
+		return
+	}
+	var country Country
+	if err := json.Unmarshal([]byte(countryString), &country); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "json转换失败"})
+		logs.GetInstance().Logger.Errorf("ShowProvinceHandler error %s", err)
+		return
+	}
+	if country.CountryId != provinceForm.CountryId {
+		ctx.JSON(http.StatusBadRequest, gin.H{"err": "参数错误"})
+		logs.GetInstance().Logger.Errorf("ShowProvinceHandler error %d != %d", country.CountryId, provinceForm.CountryId)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"country": country})
 }
