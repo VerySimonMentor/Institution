@@ -48,7 +48,7 @@ func CreateCountryHandler(ctx *gin.Context) {
 		CountryEngName:   countrySQL.CountryEngName,
 		CountryChiName:   countrySQL.CountryChiName,
 		CountryAndSchool: make(map[int]struct{}),
-		Province:         make(map[string]struct{}),
+		Province:         make([]Province, 0),
 	})
 	redisClient.RPush(context.Background(), "country", countryByte)
 	countryList := getCountryInRedis(ctx)
