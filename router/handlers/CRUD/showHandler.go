@@ -91,13 +91,8 @@ func ShowProvinceHandler(ctx *gin.Context) {
 		logs.GetInstance().Logger.Errorf("ShowProvinceHandler error %d != %d", country.CountryId, provinceForm.CountryId)
 		return
 	}
-	province := make([]string, len(country.Province))
-	for key := range country.Province {
-		province = append(province, key)
-	}
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"country":  country,
-		"province": province,
+		"country": country,
 	})
 }

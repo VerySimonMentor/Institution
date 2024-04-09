@@ -44,7 +44,7 @@ func getCountryInRedis(ctx *gin.Context) []Country {
 		countryList := make([]Country, len(countryListSQL))
 		for i, country := range countryListSQL {
 			countryAndSchool := make(map[int]struct{})
-			province := make(map[string]struct{})
+			province := make([]Province, 0)
 			json.Unmarshal(country.CountryAndSchool, &countryAndSchool)
 			json.Unmarshal(country.Province, &province)
 			countryList[i] = Country{

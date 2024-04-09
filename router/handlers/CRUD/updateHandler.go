@@ -75,11 +75,11 @@ func UpdateCountryHandler(ctx *gin.Context) {
 }
 
 type UpdateProvinceForm struct {
-	CountryId      int      `json:"countryId"`
-	ListIndex      int64    `json:"listIndex"`
-	CountryEngName string   `json:"countryEngName"`
-	CountryChiName string   `json:"countryChiName"`
-	Province       []string `json:"province"`
+	CountryId      int        `json:"countryId"`
+	ListIndex      int64      `json:"listIndex"`
+	CountryEngName string     `json:"countryEngName"`
+	CountryChiName string     `json:"countryChiName"`
+	Province       []Province `json:"province"`
 }
 
 func UpdateProvinceHandler(ctx *gin.Context) {
@@ -109,13 +109,9 @@ func UpdateProvinceHandler(ctx *gin.Context) {
 		return
 	}
 
-	province := make(map[string]struct{})
-	for _, p := range updateCountryForm.Province {
-		province[p] = struct{}{}
-	}
 	updateCountry.CountryEngName = updateCountryForm.CountryEngName
 	updateCountry.CountryChiName = updateCountryForm.CountryChiName
-	updateCountry.Province = province
+	updateCountry.Province = updateCountryForm.Province
 	updateCountryByte, _ := json.Marshal(updateCountry)
 	err = redisClient.LSet(ctx, "country", updateCountryForm.ListIndex, updateCountryByte).Err()
 	if err != nil {
