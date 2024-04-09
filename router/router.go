@@ -33,6 +33,8 @@ func RouterInit(config *config.Config) *gin.Engine {
 		user.LoginHandler(ctx, &config.Admin)
 	})
 	ginRouter.POST("/changeCountry", crud.UpdateCountryHandler)
+	ginRouter.POST("/country/changeProvince/show", crud.ShowProvinceHandler)
+	ginRouter.POST("/country/changeProvince/save", crud.UpdateProvinceHandler)
 
 	ginRouter.DELETE("/country/delete", crud.DeleteCountryHandler)
 
