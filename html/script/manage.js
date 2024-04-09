@@ -3,7 +3,7 @@ var currentPage = 1;
 var totalPage;
 
 $(document).ready(function() {
-    function fetchData(page = currentPage) {
+    function fetchCountryData(page = currentPage) {
         var data = {
             page: page,
             pageNum: pageNum
@@ -19,6 +19,8 @@ $(document).ready(function() {
                 totalPage = data.totalPage;
                 var table = $('#country-table tbody');
                 table.empty();
+                var countrySwitch = $('#country-switch input[type="checkbox"]');
+                var readonly = !countrySwitch.prop('checked');
 
                 for (let i = 0; i < data.results.length; i++) {
                     var listIndex = (page - 1) * pageNum + i + 1;
@@ -32,45 +34,99 @@ $(document).ready(function() {
                             <td>${data.results[i].schoolNum}</td>
                             <td>${data.results[i].provinceNum}</td>
                             <td>
-                                <a href="/country/edit/${data.results[i].id}" class="btn btn-primary">Edit</a>
-                                <a href="/country/delete/${data.results[i].id}" class="btn btn-danger">Delete</a>
+                                <a href=# class="btn btn-province">编辑省份</a>
+                                <a href=# class="btn btn-school">编辑学校</a>
+                                <a href=# class="btn btn-delete">删除</a>
                             </td>
                         </tr>`
                     );
                     table.append(row);
                     row.find('input.input-text').eq(0).change((function(countryId, listIndex, countryName) {
                         return function() {
-                            console.log(countryId, listIndex, countryName);
                             var value = $(this).val();
                             inputTextChange(countryId, listIndex, countryName, value);
                         }
                     })(data.results[i].countryId, listIndex, 'countryChiName'));
-                    chiNameText.change((function(countryId, listIndex, countryName) {
+                    row.find('input.input-text').eq(1).change((function(countryId, listIndex, countryName) {
                         return function() {
-                            console.log(countryId, listIndex, countryName);
                             var value = $(this).val();
                             inputTextChange(countryId, listIndex, countryName, value);
                         }
-                    })(data.results[i].countryId, listIndex, 'countryChiName'));
-                    engNameText.change((function(countryId, listIndex, countryName, value) {
+                    })(data.results[i].countryId, listIndex, 'countryEngName'));
+                    row.find('input.input-text').prop('readonly', readonly);
+                    row.find('.btn-delete').click((function(countryId, listIndex) {
                         return function() {
-                            inputTextChange(countryId, listIndex, countryName, value);
+                            var data = {
+                                countryId: countryId,
+                                listIndex: listIndex - 1,
+                            }
+                            $.ajax({
+                                url: '/country/delete',
+                                type: 'DELETE',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                data: JSON.stringify(data),
+                                success: function(data) {
+                                    if (table.children().length === 1) {
+                                        $('#country-pagination').children().last().remove();
+                                        if (currentPage > 1) {
+                                            currentPage--;
+                                        }
+                                    }
+                                    fetchCountryData(currentPage);
+                                }
+                            });
                         }
-                    })(data.results[i].id, listIndex, 'countryEngName', engNameText.val()));
-
-                    // Add event listener for text box change
-                    $('.country-chi-name, .country-eng-name').on('change', function() {
-                        // Handle text box change event here
-                    });
+                    })(data.results[i].countryId, listIndex));
                 }
 
-                $('.pagination').empty();
+                $('#country-pagination').empty();
                 for (let i = 1; i <= data.totalPage; i++) {
-                    $('.pagination').append(`<a class="page-link" href="#" data-page="${i}">${i}</a></li>`);
+                    $('#country-pagination').append(`<a class="page-link" href="#" data-page="${i}">${i}</a>`);
                 }
+
+                $('#add-country-btn').prop('disabled', readonly);
             }
         });
+    }
 
+    $(document).on('click', '.page-link', function(e) {
+        e.preventDefault();
+        currentPage = $(this).data('page');
+        fetchCountryData(currentPage);
+    });
+
+    $("#add-country-btn").click(function() {
+        if (currentPage != totalPage) {
+            currentPage = totalPage;
+            fetchCountryData(currentPage);
+        }
+        $.get("/country/create", {pageNum: pageNum}, function(response) {
+            fetchCountryData(response.totalPage);
+        });
+    });
+
+    function inputTextChange(countryId, listIndex, field, value) {
+        $.ajax({
+            url: '/changeCountry',
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            data: JSON.stringify({
+                countryId: countryId,
+                listIndex: listIndex - 1,
+                updateField: field,
+                updateValue: value
+            }),
+            success: function(data) {
+                // console.log(data);
+            }
+        });
+    }
+
+    function initCountry() {
         $('#add-country-btn').prop('disabled', true);
         var countrySwitch = $('#country-switch input[type="checkbox"]');
         countrySwitch.prop('checked', false);
@@ -81,40 +137,25 @@ $(document).ready(function() {
         });
     }
 
-    fetchData();
-
-    $(document).on('click', '.page-link', function(e) {
-        e.preventDefault();
-        var page = $(this).data('page');
-        fetchData(page);
+    $(".button-list-button").click(function() {
+        //获取button id
+        var buttonId = $(this).attr("id");
+        //隐藏所有section
+        $("#manage-country-content").css("display", "none");
+        $("#manage-school-content").css("display", "none");
+        $("#manage-item-content").css("display", "none");
+        $("#manage-user-content").css("display", "none");
+        $("#system-set-content").css("display", "none");
+        //根据button id显示对应的section
+        $('#' + buttonId + '-content') 
+            .css("display", "block")
+            .css({
+                "position": "absolute", // 使用绝对定位
+                "top": "80px", // 距离顶部100px
+                "left": "20vw" // 距离左侧50px
+            });
     });
 
-    $("#add-country-btn").click(function() {
-        if (currentPage != totalPage) {
-            fetchData(totalPage);
-        }
-        $.get("/country/create", function(response) {
-            fetchData(totalPage);
-        });
-    });
-
-    function inputTextChange(countryId, listIndex, field, value) {
-        console.log(countryId, listIndex, field, value);
-        $.ajax({
-            url: '/country/update',
-            type: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            data: JSON.stringify({
-                countryId: countryId,
-                listIndex: listIndex,
-                field: field,
-                value: value
-            }),
-            success: function(data) {
-                console.log(data);
-            }
-        });
-    }
+    fetchCountryData();
+    initCountry();
 });

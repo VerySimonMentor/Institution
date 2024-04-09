@@ -11,6 +11,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type InstanceForm struct {
+	CountryId int   `json:"countryId"`
+	ListIndex int64 `json:"listIndex"`
+}
+
 func pageRange(page, pageNum, countryNum int) (int, int) {
 	start := (page - 1) * pageNum
 	end := start + pageNum

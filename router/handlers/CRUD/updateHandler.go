@@ -32,7 +32,7 @@ func UpdateCountryHandler(ctx *gin.Context) {
 		logs.GetInstance().Logger.Errorf("UpdateCountryHandler error %s", err)
 		return
 	}
-	var updateCountry mysql.CountrySQL
+	var updateCountry Country
 	if err := json.Unmarshal([]byte(updateCountryString), &updateCountry); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "json转换失败"})
 		logs.GetInstance().Logger.Errorf("UpdateCountryHandler error %s", err)
@@ -40,7 +40,7 @@ func UpdateCountryHandler(ctx *gin.Context) {
 	}
 	if updateCountry.CountryId != updateCountryForm.CountryId {
 		ctx.JSON(http.StatusBadRequest, gin.H{"err": "参数错误"})
-		logs.GetInstance().Logger.Errorf("UpdateCountryHandler error %s", err)
+		logs.GetInstance().Logger.Errorf("UpdateCountryHandler error %d != %d", updateCountry.CountryId, updateCountryForm.CountryId)
 		return
 	}
 
@@ -97,7 +97,7 @@ func UpdateProvinceHandler(ctx *gin.Context) {
 		logs.GetInstance().Logger.Errorf("UpdateProvinceHandler error %s", err)
 		return
 	}
-	var updateCountry mysql.CountrySQL
+	var updateCountry Country
 	if err := json.Unmarshal([]byte(updateCountryString), &updateCountry); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "json转换失败"})
 		logs.GetInstance().Logger.Errorf("UpdateProvinceHandler error %s", err)
@@ -108,9 +108,10 @@ func UpdateProvinceHandler(ctx *gin.Context) {
 		logs.GetInstance().Logger.Errorf("UpdateProvinceHandler error %s", err)
 		return
 	}
+
 	updateCountry.CountryEngName = updateCountryForm.CountryEngName
 	updateCountry.CountryChiName = updateCountryForm.CountryChiName
-	updateCountry.Province, _ = json.Marshal(updateCountryForm.Province)
+	updateCountry.Province = updateCountryForm.Province
 	updateCountryByte, _ := json.Marshal(updateCountry)
 	err = redisClient.LSet(ctx, "country", updateCountryForm.ListIndex, updateCountryByte).Err()
 	if err != nil {
@@ -119,13 +120,22 @@ func UpdateProvinceHandler(ctx *gin.Context) {
 		return
 	}
 
+	countryAndSchoolByte, _ := json.Marshal(updateCountry.CountryAndSchool)
+	provinceByte, _ := json.Marshal(updateCountryForm.Province)
+	updateCountrySQL := mysql.CountrySQL{
+		CountryId:        updateCountryForm.CountryId,
+		CountryEngName:   updateCountryForm.CountryEngName,
+		CountryChiName:   updateCountryForm.CountryChiName,
+		CountryAndSchool: countryAndSchoolByte,
+		Province:         provinceByte,
+	}
 	go func(updateCountry mysql.CountrySQL) {
 		mysqlClient := mysql.GetClient()
 		err := mysqlClient.Model(&mysql.CountrySQL{}).Where("countryId = ?", updateCountry.CountryId).Updates(&updateCountry).Error
 		if err != nil {
 			logs.GetInstance().Logger.Errorf("UpdateProvinceHandler error %s", err)
 		}
-	}(updateCountry)
+	}(updateCountrySQL)
 
 	ctx.JSON(http.StatusOK, gin.H{"msg": "更新成功"})
 }

@@ -11,13 +11,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type DeleteForm struct {
-	CountryId int   `json:"countryId"`
-	ListIndex int64 `json:"listIndex"`
-}
-
 func DeleteCountryHandler(ctx *gin.Context) {
-	var deleteForm DeleteForm
+	var deleteForm InstanceForm
 	if err := ctx.ShouldBindJSON(&deleteForm); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"err": "参数错误"})
 		logs.GetInstance().Logger.Errorf("DeleteCountryHandler error %s", err)
@@ -31,7 +26,7 @@ func DeleteCountryHandler(ctx *gin.Context) {
 		logs.GetInstance().Logger.Errorf("DeleteCountryHandler error %s", err)
 		return
 	}
-	var deleteCountry mysql.CountrySQL
+	var deleteCountry Country
 	if err := json.Unmarshal([]byte(deleteCountryString), &deleteCountry); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "json转换失败"})
 		logs.GetInstance().Logger.Errorf("DeleteCountryHandler error %s", err)
