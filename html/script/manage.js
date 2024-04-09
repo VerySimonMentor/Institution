@@ -70,9 +70,7 @@ $(document).ready(function() {
                                 success: function(data) {
                                     if (table.children().length === 1) {
                                         $('#country-pagination').children().last().remove();
-                                        if (currentPage == 0) {
-                                            currentPage = 1;
-                                        } else {
+                                        if (currentPage > 1) {
                                             currentPage--;
                                         }
                                     }
