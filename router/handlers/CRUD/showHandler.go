@@ -4,6 +4,7 @@ import (
 	"Institution/logs"
 	"Institution/redis"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -66,7 +67,7 @@ func ShowCountryHandler(ctx *gin.Context) {
 }
 
 func ShowProvinceHandler(ctx *gin.Context) {
-	var provinceForm InstanceForm
+	var provinceForm CountryInstanceForm
 	if err := ctx.ShouldBindJSON(&provinceForm); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"err": "参数错误"})
 		logs.GetInstance().Logger.Errorf("ShowProvinceHandler error %s", err)
@@ -94,5 +95,65 @@ func ShowProvinceHandler(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"country": country,
+	})
+}
+
+type ShowSchoolForm struct {
+	CountryId      int    `json:"countryId"`
+	ListIndex      int64  `json:"listIndex"`
+	CountryChiName string `json:"countryChiName"`
+	Page           int    `json:"page"`
+	PageNum        int    `json:"pageNum"`
+}
+
+func ShowSchoolHandler(ctx *gin.Context) {
+	var showSchoolForm ShowSchoolForm
+	if err := ctx.ShouldBindJSON(&showSchoolForm); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"err": "参数错误"})
+		logs.GetInstance().Logger.Errorf("ShowSchoolHandler error %s", err)
+		return
+	}
+
+	redisClient := redis.GetClient()
+	countryList := getCountryInRedis(ctx)
+	if countryList == nil {
+		return
+	}
+	if len(countryList) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{"results": []School{}})
+		return
+	}
+	countryString, err := redisClient.LIndex(ctx, "country", showSchoolForm.ListIndex).Result()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis查询失败"})
+		logs.GetInstance().Logger.Errorf("ShowSchoolHandler error %s", err)
+		return
+	}
+	var country Country
+	if err := json.Unmarshal([]byte(countryString), &country); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "json转换失败"})
+		logs.GetInstance().Logger.Errorf("ShowSchoolHandler error %s", err)
+		return
+	}
+	if country.CountryId != showSchoolForm.CountryId {
+		ctx.JSON(http.StatusBadRequest, gin.H{"err": "参数错误"})
+		logs.GetInstance().Logger.Errorf("ShowSchoolHandler error %d != %d", country.CountryId, showSchoolForm.CountryId)
+		return
+	}
+
+	schoolKey := fmt.Sprintf(SchoolKey, showSchoolForm.CountryId)
+	schoolList := getSchoolInRedis(ctx, schoolKey, country.CountryAndSchool)
+
+	start, end := pageRange(showSchoolForm.Page, showSchoolForm.PageNum, len(schoolList))
+	var totalPage int
+	if len(schoolList)%showSchoolForm.PageNum == 0 {
+		totalPage = len(schoolList) / showSchoolForm.PageNum
+	} else {
+		totalPage = len(schoolList)/showSchoolForm.PageNum + 1
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"results":   schoolList[start:end],
+		"totalPage": totalPage,
 	})
 }

@@ -56,6 +56,7 @@ $(document).ready(function() {
                     row.find('input.input-text').prop('readonly', readonly);
                     row.find('.btn-delete').click((function(countryId, listIndex) {
                         return function() {
+                            alert('确定删除吗？')
                             var data = {
                                 countryId: countryId,
                                 listIndex: listIndex - 1,

@@ -47,7 +47,7 @@ func CreateCountryHandler(ctx *gin.Context) {
 		CountryId:        countrySQL.CountryId,
 		CountryEngName:   countrySQL.CountryEngName,
 		CountryChiName:   countrySQL.CountryChiName,
-		CountryAndSchool: make(map[int]struct{}),
+		CountryAndSchool: make([]int, 0),
 		Province:         make([]Province, 0),
 	})
 	redisClient.RPush(context.Background(), "country", countryByte)
@@ -64,4 +64,19 @@ func CreateCountryHandler(ctx *gin.Context) {
 		"msg":       "创建成功",
 		"countryId": countrySQL.CountryId,
 		"totalPage": totalPage})
+}
+
+type CreateSchoolForm struct {
+	CountryId int `json:"countryId"`
+	PageNum   int `json:"pageNum"`
+}
+
+func CreateSchoolHandler(ctx *gin.Context) {
+	var createSchoolForm CreateSchoolForm
+	if err := ctx.ShouldBindJSON(&createSchoolForm); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"err": "参数错误"})
+		logs.GetInstance().Logger.Errorf("CreateSchoolHandler error %s", err)
+		return
+	}
+
 }
