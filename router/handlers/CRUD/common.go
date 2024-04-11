@@ -2,7 +2,10 @@ package CRUD
 
 const (
 	SchoolKey = "%d-school"
+	ItemKey   = "%d-%d-item"
 )
+
+var TypeList = [3]string{"本科", "硕士", "博士"}
 
 type Country struct {
 	CountryId        int        `json:"countryId"`

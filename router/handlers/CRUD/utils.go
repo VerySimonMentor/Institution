@@ -17,9 +17,9 @@ type CountryInstanceForm struct {
 }
 
 type SchoolInstanceForm struct {
-	CountryId int   `json:"countryId"`
-	SchoolId  int   `json:"schoolId"`
-	ListIndex int64 `json:"listIndex"`
+	CountryListIndex int64 `json:"countryListIndex"`
+	SchoolId         int   `json:"schoolId"`
+	SchoolListIndex  int64 `json:"schoolListIndex"`
 }
 
 func pageRange(page, pageNum, countryNum int) (int, int) {
@@ -123,7 +123,7 @@ func getSchoolInRedis(ctx *gin.Context, schoolKey string, countryAndSchool []int
 	mysqlClient := mysql.GetClient()
 
 	if !checkSchoolInRedis(ctx, schoolKey) {
-		schoolListSQL := make([]mysql.SchoolSQL, 0, len(countryAndSchool))
+		schoolListSQL := make([]mysql.SchoolSQL, len(countryAndSchool))
 		for i, schoolId := range countryAndSchool {
 			school := mysql.SchoolSQL{}
 			if err := mysqlClient.Model(&mysql.SchoolSQL{}).Where("schoolId = ?", schoolId).Find(&school).Error; err != nil {

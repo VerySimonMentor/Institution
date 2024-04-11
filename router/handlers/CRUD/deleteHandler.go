@@ -64,9 +64,30 @@ func DeleteSchoolHandler(ctx *gin.Context) {
 		return
 	}
 
-	schoolKey := fmt.Sprintf(SchoolKey, deleteForm.CountryId)
 	redisClient := redis.GetClient()
-	deleteSchoolString, err := redisClient.LIndex(context.Background(), schoolKey, deleteForm.ListIndex).Result()
+	countryString, err := redisClient.LIndex(context.Background(), "country", deleteForm.CountryListIndex).Result()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis查询失败"})
+		logs.GetInstance().Logger.Errorf("DeleteSchoolHandler error %s", err)
+		return
+	}
+	var country Country
+	if err := json.Unmarshal([]byte(countryString), &country); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "json转换失败"})
+		logs.GetInstance().Logger.Errorf("DeleteSchoolHandler error %s", err)
+		return
+	}
+	country.CountryAndSchool = append(country.CountryAndSchool[:deleteForm.SchoolListIndex], country.CountryAndSchool[deleteForm.SchoolListIndex+1:]...)
+	countryStringNew, _ := json.Marshal(country)
+	_, err = redisClient.LSet(context.Background(), "country", deleteForm.CountryListIndex, countryStringNew).Result()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis修改失败"})
+		logs.GetInstance().Logger.Errorf("DeleteSchoolHandler error %s", err)
+		return
+	}
+
+	schoolKey := fmt.Sprintf(SchoolKey, country.CountryId)
+	deleteSchoolString, err := redisClient.LIndex(context.Background(), schoolKey, deleteForm.SchoolListIndex).Result()
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis查询失败"})
 		logs.GetInstance().Logger.Errorf("DeleteSchoolHandler error %s", err)
@@ -90,13 +111,19 @@ func DeleteSchoolHandler(ctx *gin.Context) {
 		return
 	}
 
-	go func(schoolId int) {
+	go func(schoolId int, country Country) {
 		mysqlClient := mysql.GetClient()
 		err := mysqlClient.Where("schoolId = ?", schoolId).Delete(&mysql.SchoolSQL{}).Error
 		if err != nil {
 			logs.GetInstance().Logger.Errorf("DeleteSchoolHandler error %s", err)
 		}
-	}(deleteForm.SchoolId)
+
+		countryAndSchoolString, _ := json.Marshal(country.CountryAndSchool)
+		err = mysqlClient.Model(&mysql.CountrySQL{}).Where("countryId = ?", country.CountryId).UpdateColumn("countryAndSchool", countryAndSchoolString).Error
+		if err != nil {
+			logs.GetInstance().Logger.Errorf("DeleteSchoolHandler error %s", err)
+		}
+	}(deleteForm.SchoolId, country)
 
 	ctx.JSON(http.StatusOK, gin.H{"msg": "删除成功"})
 }
