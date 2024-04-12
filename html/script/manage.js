@@ -343,8 +343,8 @@ $(document).ready(function() {
             data: JSON.stringify(data),
             success: function(data) {
                 var school = data.results;
-                var schoolType = data.schoolType;
                 var province = data.province;
+                var schoolTypeList = data.schoolTypeList;
                 totalSchoolPage = data.totalPage;
                 var table = $('#school-table tbody');
                 table.empty();
@@ -357,8 +357,8 @@ $(document).ready(function() {
                     var engNameText = $(`<input type="text" class="input-text" value="${school[i].schoolEngName}" />`);
                     var abbreviationText = $(`<input type="text" class="input-text" value="${school[i].schoolAbbreviation}" />`);
                     var typeSelect = $(`<select class="input-select"></select>`);
-                    for (var j = 0; j < schoolType.length; j++) {
-                        var option = $(`<option value="${schoolType[j]}" ${school[i].type === schoolType[j] ? 'selected' : ''}>${schoolType[j]}</option>`);
+                    for (var j = 0; j < schoolTypeList.length; j++) {
+                        var option = $(`<option value="${schoolTypeList[j].SchoolTypeId}" ${school[i].schoolType == j ? 'selected' : ''}>${schoolTypeList[j].schoolTypeName}</option>`);
                         typeSelect.append(option);
                     }
                     var provinceSelect = $(`<select class="input-select"></select>`);
@@ -501,6 +501,7 @@ $(document).ready(function() {
     });
 
     function schoolTextChange(schoolId, listIndex, field, value) {
+        var countryListIndex = $('#country-select').val();
         $.ajax({
             url: '/school/change',
             type: 'POST',
@@ -508,8 +509,9 @@ $(document).ready(function() {
                 'Content-Type': 'application/json'
             },
             data: JSON.stringify({
+                countryListIndex: countryListIndex - 1,
                 schoolId: schoolId,
-                listIndex: listIndex - 1,
+                schoolListIndex: listIndex - 1,
                 updateField: field,
                 updateValue: value
             }),

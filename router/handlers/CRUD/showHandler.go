@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -50,7 +51,6 @@ func ShowCountryHandler(ctx *gin.Context) {
 	}
 	// logs.GetInstance().Logger.Infof("start: %d, end: %d", start, end)
 	countryResp := make([]CountryResp, end-start)
-	logs.GetInstance().Logger.Info(start, end, totalPage)
 	for i := start; i < end; i++ {
 		index := (pageShow.Page-1)*pageShow.PageNum + i - start
 		countryResp[i-start] = CountryResp{
@@ -141,9 +141,7 @@ func ShowSchoolHandler(ctx *gin.Context) {
 	}
 
 	schoolKey := fmt.Sprintf(SchoolKey, country.CountryId)
-	logs.GetInstance().Logger.Info(schoolKey, country.CountryAndSchool)
 	schoolList := getSchoolInRedis(ctx, schoolKey, country.CountryAndSchool)
-	logs.GetInstance().Logger.Info(schoolList)
 	if schoolList == nil {
 		return
 	}
@@ -168,17 +166,19 @@ func ShowSchoolHandler(ctx *gin.Context) {
 		}
 	}
 
+	system := getSystemInRedis(ctx)
+
 	ctx.JSON(http.StatusOK, gin.H{
-		"results":    schoolResp,
-		"schoolType": TypeList,
-		"province":   country.Province,
-		"totalPage":  totalPage,
+		"results":        schoolResp,
+		"province":       country.Province,
+		"totalPage":      totalPage,
+		"schoolTypeList": system.SchoolTyepList,
 	})
 }
 
 func InitSchoolHandler(ctx *gin.Context) {
 	countryList := getCountryInRedis(ctx)
-	allCountry := make([]string, 0)
+	allCountry := make([]string, len(countryList))
 	if countryList == nil {
 		logs.GetInstance().Logger.Errorf("InitSchoolHandler error")
 		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "查询失败"})
@@ -190,4 +190,43 @@ func InitSchoolHandler(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"results": allCountry})
+}
+
+func ShowItemHandler(ctx *gin.Context) {
+
+}
+
+func InitItemHnadler(ctx *gin.Context) {
+	countryListIndexStr := ctx.Query("countryListIndex")
+	countryListIndex, err := strconv.ParseInt(countryListIndexStr, 10, 64)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"err": "参数错误"})
+		logs.GetInstance().Logger.Errorf("InitItemHnadler error %s", err)
+		return
+	}
+
+	redisClient := redis.GetClient()
+	countryString, err := redisClient.LIndex(ctx, "country", countryListIndex).Result()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis查询失败"})
+		logs.GetInstance().Logger.Errorf("InitItemHnadler error %s", err)
+		return
+	}
+	var country Country
+	if err := json.Unmarshal([]byte(countryString), &country); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "json转换失败"})
+		logs.GetInstance().Logger.Errorf("InitItemHnadler error %s", err)
+		return
+	}
+
+	allSchool := make([]string, len(country.CountryAndSchool))
+	schoolList := getSchoolInRedis(ctx, fmt.Sprintf(SchoolKey, country.CountryId), country.CountryAndSchool)
+	if schoolList == nil {
+		return
+	}
+	for i, school := range schoolList {
+		allSchool[i] = school.SchoolChiName
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"results": allSchool})
 }

@@ -142,7 +142,6 @@ func UpdateProvinceHandler(ctx *gin.Context) {
 }
 
 type UpdateSchoolForm struct {
-	CountryId        int         `json:"countryId"`
 	CountryListIndex int64       `json:"countryListIndex"`
 	SchoolId         int         `json:"schoolId"`
 	SchoolListIndex  int64       `json:"schoolListIndex"`
@@ -171,13 +170,8 @@ func UpdateSchoolHandler(ctx *gin.Context) {
 		logs.GetInstance().Logger.Errorf("UpdateSchoolHandler error %s", err)
 		return
 	}
-	if country.CountryId != updateSchoolForm.CountryId {
-		ctx.JSON(http.StatusBadRequest, gin.H{"err": "参数错误"})
-		logs.GetInstance().Logger.Errorf("UpdateSchoolHandler error %d != %d", country.CountryId, updateSchoolForm.CountryId)
-		return
-	}
 
-	schoolKey := fmt.Sprintf(SchoolKey, updateSchoolForm.CountryId)
+	schoolKey := fmt.Sprintf(SchoolKey, country.CountryId)
 	schoolString, err := redisClient.LIndex(ctx, schoolKey, updateSchoolForm.SchoolListIndex).Result()
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis查询失败"})
@@ -205,7 +199,7 @@ func UpdateSchoolHandler(ctx *gin.Context) {
 	case "schoolAbbreviation":
 		school.SchoolAbbreviation = updateValue
 	case "schoolType":
-		school.SchoolType = updateValue
+		school.SchoolType = updateSchoolForm.UpdateValue.(int)
 	case "province":
 		school.Province = updateValue
 	case "officialWebLink":
