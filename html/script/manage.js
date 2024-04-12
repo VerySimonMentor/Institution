@@ -1,9 +1,11 @@
 const pageNum = 10;
-var currentPage = 1;
-var totalPage;
+var currentCountryPage = 1;
+var currentSchoolPage = 1;
+var totalCountryPage;
+var totalSchoolPage;
 
 $(document).ready(function() {
-    function fetchCountryData(page = currentPage) {
+    function fetchCountryData(page = currentCountryPage) {
         var data = {
             page: page,
             pageNum: pageNum
@@ -16,7 +18,7 @@ $(document).ready(function() {
             },
             data: JSON.stringify(data),
             success: function(data) {
-                totalPage = data.totalPage;
+                totalCountryPage = data.totalPage;
                 var table = $('#country-table tbody');
                 table.empty();
                 var countrySwitch = $('#country-switch input[type="checkbox"]');
@@ -44,18 +46,19 @@ $(document).ready(function() {
                     row.find('input.input-text').eq(0).change((function(countryId, listIndex, countryName) {
                         return function() {
                             var value = $(this).val();
-                            inputTextChange(countryId, listIndex, countryName, value);
+                            countryTextChange(countryId, listIndex, countryName, value);
                         }
                     })(data.results[i].countryId, listIndex, 'countryChiName'));
                     row.find('input.input-text').eq(1).change((function(countryId, listIndex, countryName) {
                         return function() {
                             var value = $(this).val();
-                            inputTextChange(countryId, listIndex, countryName, value);
+                            countryTextChange(countryId, listIndex, countryName, value);
                         }
                     })(data.results[i].countryId, listIndex, 'countryEngName'));
                     row.find('input.input-text').prop('readonly', readonly);
                     row.find('.btn-delete').click((function(countryId, listIndex) {
                         return function() {
+                            alert('确定删除吗？')
                             var data = {
                                 countryId: countryId,
                                 listIndex: listIndex - 1,
@@ -70,15 +73,28 @@ $(document).ready(function() {
                                 success: function(data) {
                                     if (table.children().length === 1) {
                                         $('#country-pagination').children().last().remove();
-                                        if (currentPage > 1) {
-                                            currentPage--;
+                                        if (currentCountryPage > 1) {
+                                            currentCountryPage--;
                                         }
                                     }
-                                    fetchCountryData(currentPage);
+                                    fetchCountryData(currentCountryPage);
                                 }
                             });
                         }
                     })(data.results[i].countryId, listIndex));
+                    row.find('.btn-school').click((function(listIndex) {
+                        return function() {
+                            $("#manage-country-content").css("display", "none");
+                            $("#manage-school-content").css("display", "block");
+                            $("#manage-school-content").css({
+                                "position": "absolute", // 使用绝对定位
+                                "top": "80px", // 距离顶部100px
+                                "left": "20vw" // 距离左侧50px
+                            });
+                            initSchool(listIndex);
+                            $('#country-select').val(listIndex).trigger('change');
+                        }
+                    })(listIndex));
                     row.find('.btn-province').click((function(countryId, listIndex, currentPage) {
                         return function() {
                             var data = {
@@ -98,7 +114,7 @@ $(document).ready(function() {
                                     $("#manage-country-content").css('opacity', '0.5');
                                     $('#chinese-name-input').val(data.country.countryChiName);
                                     $('#english-name-input').val(data.country.countryEngName);
-                                    $('#save-province-btn').click((function(){
+                                    $('#save-province-btn').off('click').click((function(){
                                         return function(){
                                             var province = getProvinceData();
                                             var countryChiName = $('#chinese-name-input').val();
@@ -130,7 +146,7 @@ $(document).ready(function() {
                                 }
                             });
                         }//
-                    })(data.results[i].countryId, listIndex, currentPage));
+                    })(data.results[i].countryId, listIndex, currentCountryPage));
                 }
 
                 $('#country-pagination').empty();
@@ -143,23 +159,23 @@ $(document).ready(function() {
         });
     }
 
-    $(document).on('click', '.page-link', function(e) {
+    $(document).on('click', '#country-pagination .page-link', function(e) {
         e.preventDefault();
-        currentPage = $(this).data('page');
-        fetchCountryData(currentPage);
+        currentCountryPage = $(this).data('page');
+        fetchCountryData(currentCountryPage);
     });
 
     $("#add-country-btn").click(function() {
-        if (currentPage != totalPage) {
-            currentPage = totalPage;
-            fetchCountryData(currentPage);
+        if (currentCountryPage != totalCountryPage) {
+            currentCountryPage = totalCountryPage;
+            fetchCountryData(currentCountryPage);
         }
         $.get("/country/create", {pageNum: pageNum}, function(response) {
             fetchCountryData(response.totalPage);
         });
     });
 
-    function inputTextChange(countryId, listIndex, field, value) {
+    function countryTextChange(countryId, listIndex, field, value) {
         $.ajax({
             url: '/changeCountry',
             type: 'POST',
@@ -206,6 +222,12 @@ $(document).ready(function() {
                 "top": "80px", // 距离顶部100px
                 "left": "20vw" // 距离左侧50px
             });
+        if (buttonId === 'manage-country') {
+            fetchCountryData();
+            initCountry();
+        } else if (buttonId === 'manage-school') {
+            initSchool();
+        }
     });
 
     function fetchProvinceData(province) {
@@ -256,6 +278,227 @@ $(document).ready(function() {
         $("#manage-country-content").css('pointer-events', 'auto');
         $("#manage-country-content").css('opacity', '1');
     })
+
+    function initSchool(listIndex = 0) {
+        $('#school-table').css('width', '1600px');
+        $.ajax({
+            url: '/school/initPage',
+            type: 'GET',
+            success: function(data) {
+                $('#add-school-btn').prop('disabled', true);
+                var schoolSwitch = $('#school-switch input[type="checkbox"]');
+                schoolSwitch.prop('checked', false);
+                schoolSwitch.change(function() {
+                    var readonly = !$(this).prop('checked');
+                    $('#add-school-btn').prop('disabled', readonly);
+                    $('.input-text').prop('readonly', readonly);
+                    $('.input-select').prop('disabled', readonly);
+                });
+                var allCountry = data.results;
+                var countrySelect = $('#country-select');
+                for (var i = 0; i < allCountry.length; i++) {
+                    var option = $(`<option value="${i+1}">${allCountry[i]}</option>`);
+                    countrySelect.append(option);
+                }
+                countrySelect.change(function() {
+                    var listIndex = $(this).val();
+                    fetchSchoolData(listIndex, pageNum);
+                });
+                countrySelect.val(listIndex).trigger('change');
+            }
+        });
+    }
+
+    function fetchSchoolData(listIndex, pageNum, page = 1) {
+        var data = {
+            countryListIndex: listIndex - 1,
+            page: 1,
+            pageNum: pageNum
+        }
+        $.ajax({
+            url: '/country/editSchool',
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            data: JSON.stringify(data),
+            success: function(data) {
+                var school = data.results;
+                var schoolType = data.schoolType;
+                var province = data.province;
+                totalSchoolPage = data.totalPage;
+                var table = $('#school-table tbody');
+                table.empty();
+                var schoolSwitch = $('#school-switch input[type="checkbox"]');
+                var readonly = !schoolSwitch.prop('checked');
+
+                for (let i=0; i<school.length; i++) {
+                    var listIndex = (page - 1) * pageNum + i + 1;
+                    var chiNameText = $(`<input type="text" class="input-text" value="${school[i].schoolChiName}" />`);
+                    var engNameText = $(`<input type="text" class="input-text" value="${school[i].schoolEngName}" />`);
+                    var abbreviationText = $(`<input type="text" class="input-text" value="${school[i].schoolAbbreviation}" />`);
+                    var typeSelect = $(`<select class="input-select"></select>`);
+                    for (var j = 0; j < schoolType.length; j++) {
+                        var option = $(`<option value="${schoolType[j]}" ${school[i].type === schoolType[j] ? 'selected' : ''}>${schoolType[j]}</option>`);
+                        typeSelect.append(option);
+                    }
+                    var provinceSelect = $(`<select class="input-select"></select>`);
+                    for (var j = 0; j < province.length; j++) {
+                        var option = $(`<option value="${province[j].chiName}" ${school[i].province === province[j].chiName ? 'selected' : ''}>${province[j].chiName}</option>`);
+                        provinceSelect.append(option);
+                    }
+                    var linkText = $(`<input type="text" class="input-text" value="${school[i].officialWebLink}" />`);
+                    var remarkText = $(`<input type="text" class="input-text" value="${school[i].schoolRemark}" />`);
+                    
+                    var row = $(
+                        `<tr>
+                            <td>${i+1}</td>
+                            <td>${chiNameText.prop('outerHTML')}</td>
+                            <td>${engNameText.prop('outerHTML')}</td>
+                            <td>${abbreviationText.prop('outerHTML')}</td>
+                            <td>${typeSelect.prop('outerHTML')}</td>
+                            <td>${provinceSelect.prop('outerHTML')}</td>
+                            <td>${linkText.prop('outerHTML')}</td>
+                            <td>${remarkText.prop('outerHTML')}</td>
+                            <td>${school[i].itemNum}</td>
+                            <td>
+                                <a href=# class="btn btn-item">编辑项目</a>
+                                <a href=# class="btn btn-school-delete">删除</a>
+                            </td>
+                        </tr>`
+                    );
+                    table.append(row);
+                    row.find('input.input-text').eq(0).change((function(schoolId, listIndex, field) {
+                        return function() {
+                            var value = $(this).val();
+                            schoolTextChange(schoolId, listIndex, field, value);
+                        }
+                    })(school[i].schoolId, listIndex, 'schoolChiName'));
+                    row.find('input.input-text').eq(1).change((function(schoolId, listIndex, field) {
+                        return function() {
+                            var value = $(this).val();
+                            schoolTextChange(schoolId, listIndex, field, value);
+                        }
+                    })(school[i].schoolId, listIndex, 'schoolEngName'));
+                    row.find('input.input-text').eq(2).change((function(schoolId, listIndex, field) {
+                        return function() {
+                            var value = $(this).val();
+                            schoolTextChange(schoolId, listIndex, field, value);
+                        }
+                    })(school[i].schoolId, listIndex, 'schoolAbbreviation'));
+                    row.find('select.input-select').eq(0).change((function(schoolId, listIndex, field) {
+                        return function() {
+                            var value = $(this).val();
+                            schoolTextChange(schoolId, listIndex, field, value);
+                        }
+                    })(school[i].schoolId, listIndex, 'schoolType'));
+                    row.find('select.input-select').eq(1).change((function(schoolId, listIndex, field) {
+                        return function() {
+                            var value = $(this).val();
+                            schoolTextChange(schoolId, listIndex, field, value);
+                        }
+                    })(school[i].schoolId, listIndex, 'province'));
+                    row.find('input.input-text').eq(3).change((function(schoolId, listIndex, field) {
+                        return function() {
+                            var value = $(this).val();
+                            schoolTextChange(schoolId, listIndex, field, value);
+                        }
+                    })(school[i].schoolId, listIndex, 'officialWebLink'));
+                    row.find('input.input-text').eq(4).change((function(schoolId, listIndex, field) {
+                        return function() {
+                            var value = $(this).val();
+                            schoolTextChange(schoolId, listIndex, field, value);
+                        }
+                    })(school[i].schoolId, listIndex, 'schoolRemark'));
+                    row.find('input.input-text').prop('readonly', readonly);
+                    row.find('select.input-select').prop('disabled', readonly);
+                    row.find('.btn-school-delete').click((function(schoolId, listIndex) {
+                        return function() {
+                            alert('确定删除吗？')
+                            var countryListIndex = $('#country-select').val();
+                            var data = {
+                                countryListIndex: countryListIndex - 1,
+                                schoolId: schoolId,
+                                schoolListIndex: listIndex - 1,
+                            }
+                            $.ajax({
+                                url: '/school/delete',
+                                type: 'DELETE',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                data: JSON.stringify(data),
+                                success: function(data) {
+                                    if (table.children().length === 1) {
+                                        $('#school-pagination').children().last().remove();
+                                        if (currentSchoolPage > 1) {
+                                            currentSchoolPage--;
+                                        }
+                                    }
+                                    fetchSchoolData(currentSchoolPage);
+                                }
+                            });
+                        }
+                    })(school[i].schoolId, listIndex));
+                }
+
+                $('#school-pagination').empty();
+                for (let i = 1; i <= totalSchoolPage; i++) {
+                    $('#school-pagination').append(`<a class="page-link" href="#" data-page="${i}">${i}</a>`);
+                }
+                $('#add-school-btn').prop('disabled', readonly);
+            }
+        });
+        
+    }
+
+    $(document).on('click', '.school-pagination .page-link', function(e) {
+        e.preventDefault();
+        currentSchoolPage = $(this).data('page');
+        listIndex = $('#country-select').val();
+        fetchSchoolData(listIndex, pageNum, currentSchoolPage);
+    });
+
+    $("#add-school-btn").click(function() {
+        var listIndex = $('#country-select').val();
+        if (currentSchoolPage != totalSchoolPage) {
+            currentSchoolPage = totalSchoolPage;
+            fetchSchoolData(listIndex, pageNum, currentSchoolPage);
+        }
+        $.ajax({
+            url: 'school/create',
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            data: JSON.stringify({
+                countryListIndex: listIndex - 1,
+                pageNum: pageNum,
+            }),
+            success: function(data) {
+                fetchSchoolData(listIndex, data.totalPage);
+            }
+        });
+    });
+
+    function schoolTextChange(schoolId, listIndex, field, value) {
+        $.ajax({
+            url: '/school/change',
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            data: JSON.stringify({
+                schoolId: schoolId,
+                listIndex: listIndex - 1,
+                updateField: field,
+                updateValue: value
+            }),
+            success: function(data) {
+                // console.log(data);
+            }
+        });
+    }
 
     fetchCountryData();
     initCountry();

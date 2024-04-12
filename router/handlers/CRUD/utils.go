@@ -11,9 +11,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type InstanceForm struct {
+type CountryInstanceForm struct {
 	CountryId int   `json:"countryId"`
 	ListIndex int64 `json:"listIndex"`
+}
+
+type SchoolInstanceForm struct {
+	CountryListIndex int64 `json:"countryListIndex"`
+	SchoolId         int   `json:"schoolId"`
+	SchoolListIndex  int64 `json:"schoolListIndex"`
 }
 
 func pageRange(page, pageNum, countryNum int) (int, int) {
@@ -31,8 +37,9 @@ func pageRange(page, pageNum, countryNum int) (int, int) {
 func getCountryInRedis(ctx *gin.Context) []Country {
 	redisClient := redis.GetClient()
 	mysqlClient := mysql.GetClient()
-	countryListSQL := make([]mysql.CountrySQL, 0)
+
 	if !checkCountryInRedis(ctx) {
+		countryListSQL := make([]mysql.CountrySQL, 0)
 		if err := mysqlClient.Model(&mysql.CountrySQL{}).Find(&countryListSQL).Error; err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"err": "查询失败"})
 			logs.GetInstance().Logger.Errorf("ShowCountryHandler error %s", err)
@@ -43,7 +50,7 @@ func getCountryInRedis(ctx *gin.Context) []Country {
 		}
 		countryList := make([]Country, len(countryListSQL))
 		for i, country := range countryListSQL {
-			countryAndSchool := make(map[int]struct{})
+			countryAndSchool := make([]int, 0)
 			province := make([]Province, 0)
 			json.Unmarshal(country.CountryAndSchool, &countryAndSchool)
 			json.Unmarshal(country.Province, &province)
@@ -105,6 +112,97 @@ func checkCountryInRedis(ctx *gin.Context) bool {
 	if keytype != "list" {
 		// ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis类型错误"})
 		// logs.GetInstance().Logger.Errorf("ShowCountryHandler error %s", err)
+		return false
+	}
+
+	return true
+}
+
+func getSchoolInRedis(ctx *gin.Context, schoolKey string, countryAndSchool []int) []School {
+	redisClient := redis.GetClient()
+	mysqlClient := mysql.GetClient()
+
+	if !checkSchoolInRedis(ctx, schoolKey) {
+		schoolListSQL := make([]mysql.SchoolSQL, len(countryAndSchool))
+		for i, schoolId := range countryAndSchool {
+			school := mysql.SchoolSQL{}
+			if err := mysqlClient.Model(&mysql.SchoolSQL{}).Where("schoolId = ?", schoolId).Find(&school).Error; err != nil {
+				ctx.JSON(http.StatusInternalServerError, gin.H{"err": "查询失败"})
+				logs.GetInstance().Logger.Errorf("get school in redis error %s", err)
+				return nil
+			}
+			schoolListSQL[i] = school
+		}
+		if len(schoolListSQL) == 0 {
+			return make([]School, 0)
+		}
+
+		schoolList := make([]School, len(schoolListSQL))
+		for i, school := range schoolListSQL {
+			schoolAndItem := make([]int, 0)
+			json.Unmarshal(school.SchoolAndItem, &schoolAndItem)
+			schoolList[i] = School{
+				SchoolId:           school.SchoolId,
+				SchoolEngName:      school.SchoolEngName,
+				SchoolChiName:      school.SchoolChiName,
+				SchoolAbbreviation: school.SchoolAbbreviation,
+				SchoolType:         school.SchoolType,
+				Province:           school.Province,
+				OfficialWebLink:    school.OfficialWebLink,
+				SchoolRemark:       school.SchoolRemark,
+				SchoolAndItem:      schoolAndItem,
+			}
+		}
+		schoolJSON := make([][]byte, len(schoolList))
+		for i, school := range schoolList {
+			var err error
+			schoolJSON[i] = make([]byte, 0)
+			schoolJSON[i], err = json.Marshal(school)
+			if err != nil {
+				ctx.JSON(http.StatusInternalServerError, gin.H{"err": "json转换失败"})
+				logs.GetInstance().Logger.Errorf("ShowSchoolHandler error %s", err)
+				return nil
+			}
+			if err = redisClient.RPush(context.Background(), schoolKey, schoolJSON[i]).Err(); err != nil {
+				ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis存储失败"})
+				logs.GetInstance().Logger.Errorf("ShowSchoolHandler error %s", err)
+				return nil
+			}
+		}
+	}
+
+	schoolString, err := redisClient.LRange(context.Background(), schoolKey, 0, -1).Result()
+	schoolList := make([]School, len(countryAndSchool))
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis查询失败"})
+		logs.GetInstance().Logger.Errorf("ShowSchoolHandler error %s", err)
+		return nil
+	} else {
+		for i, school := range schoolString {
+			var schoolStruct School
+			if err := json.Unmarshal([]byte(school), &schoolStruct); err != nil {
+				ctx.JSON(http.StatusInternalServerError, gin.H{"err": "json转换失败"})
+				logs.GetInstance().Logger.Errorf("ShowSchoolHandler error %s", err)
+				return nil
+			}
+			schoolList[i] = schoolStruct
+		}
+	}
+
+	return schoolList
+}
+
+func checkSchoolInRedis(ctx *gin.Context, schoolKey string) bool {
+	redisClient := redis.GetClient()
+	keytype, err := redisClient.Type(context.Background(), schoolKey).Result()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis查询失败"})
+		logs.GetInstance().Logger.Errorf("ShowSchoolHandler error %s", err)
+		return false
+	}
+	if keytype != "list" {
+		// ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis类型错误"})
+		// logs.GetInstance().Logger.Errorf("ShowSchoolHandler error %s", err)
 		return false
 	}
 
