@@ -5,6 +5,7 @@ import (
 	"Institution/mysql"
 	"Institution/redis"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -136,6 +137,98 @@ func UpdateProvinceHandler(ctx *gin.Context) {
 			logs.GetInstance().Logger.Errorf("UpdateProvinceHandler error %s", err)
 		}
 	}(updateCountrySQL)
+
+	ctx.JSON(http.StatusOK, gin.H{"msg": "更新成功"})
+}
+
+type UpdateSchoolForm struct {
+	CountryId        int         `json:"countryId"`
+	CountryListIndex int64       `json:"countryListIndex"`
+	SchoolId         int         `json:"schoolId"`
+	SchoolListIndex  int64       `json:"schoolListIndex"`
+	UpdateField      string      `json:"updateField"`
+	UpdateValue      interface{} `json:"updateValue"`
+}
+
+func UpdateSchoolHandler(ctx *gin.Context) {
+	var updateSchoolForm UpdateSchoolForm
+	if err := ctx.ShouldBindJSON(&updateSchoolForm); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"err": "参数错误"})
+		logs.GetInstance().Logger.Errorf("UpdateSchoolHandler error %s", err)
+		return
+	}
+
+	redisClient := redis.GetClient()
+	countryString, err := redisClient.LIndex(ctx, "country", updateSchoolForm.CountryListIndex).Result()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis查询失败"})
+		logs.GetInstance().Logger.Errorf("UpdateSchoolHandler error %s", err)
+		return
+	}
+	var country Country
+	if err := json.Unmarshal([]byte(countryString), &country); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "json转换失败"})
+		logs.GetInstance().Logger.Errorf("UpdateSchoolHandler error %s", err)
+		return
+	}
+	if country.CountryId != updateSchoolForm.CountryId {
+		ctx.JSON(http.StatusBadRequest, gin.H{"err": "参数错误"})
+		logs.GetInstance().Logger.Errorf("UpdateSchoolHandler error %d != %d", country.CountryId, updateSchoolForm.CountryId)
+		return
+	}
+
+	schoolKey := fmt.Sprintf(SchoolKey, updateSchoolForm.CountryId)
+	schoolString, err := redisClient.LIndex(ctx, schoolKey, updateSchoolForm.SchoolListIndex).Result()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis查询失败"})
+		logs.GetInstance().Logger.Errorf("UpdateSchoolHandler error %s", err)
+		return
+	}
+	var school School
+	if err := json.Unmarshal([]byte(schoolString), &school); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "json转换失败"})
+		logs.GetInstance().Logger.Errorf("UpdateSchoolHandler error %s", err)
+		return
+	}
+	if school.SchoolId != updateSchoolForm.SchoolId {
+		ctx.JSON(http.StatusBadRequest, gin.H{"err": "参数错误"})
+		logs.GetInstance().Logger.Errorf("UpdateSchoolHandler error %d != %d", school.SchoolId, updateSchoolForm.SchoolId)
+		return
+	}
+
+	updateValue := updateSchoolForm.UpdateValue.(string)
+	switch updateSchoolForm.UpdateField {
+	case "schoolEngName":
+		school.SchoolEngName = updateValue
+	case "schoolChiName":
+		school.SchoolChiName = updateValue
+	case "schoolAbbreviation":
+		school.SchoolAbbreviation = updateValue
+	case "schoolType":
+		school.SchoolType = updateValue
+	case "province":
+		school.Province = updateValue
+	case "officialWebLink":
+		school.OfficialWebLink = updateValue
+	case "schoolRemark":
+		school.SchoolRemark = updateValue
+	}
+	schoolByte, _ := json.Marshal(school)
+	err = redisClient.LSet(ctx, schoolKey, updateSchoolForm.SchoolListIndex, schoolByte).Err()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis更新失败"})
+		logs.GetInstance().Logger.Errorf("UpdateSchoolHandler error %s", err)
+		return
+	}
+
+	go func(updateSchoolForm UpdateSchoolForm) {
+		mysqlClient := mysql.GetClient()
+		updateValue := updateSchoolForm.UpdateValue.(string)
+		err := mysqlClient.Model(&mysql.SchoolSQL{}).Where("schoolId = ?", updateSchoolForm.SchoolId).UpdateColumn(updateSchoolForm.UpdateField, updateValue).Error
+		if err != nil {
+			logs.GetInstance().Logger.Errorf("UpdateSchoolHandler error %s", err)
+		}
+	}(updateSchoolForm)
 
 	ctx.JSON(http.StatusOK, gin.H{"msg": "更新成功"})
 }

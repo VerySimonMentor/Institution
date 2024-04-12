@@ -65,12 +65,11 @@
     <!-- school management -->
     <select id="country-select">
       <option value="0">请选择国家</option>
-      <option value="1">中华人民共和国</option>
     </select>
 
     <button class="add-btn" id="add-school-btn">添加学校</button>
 
-    <label class="switch">
+    <label class="switch" id="school-switch">
       <input type="checkbox">
       <span class="slider round"></span>
     </label>
@@ -79,15 +78,19 @@
     <table id="school-table">
       <thead>
         <tr>
-          <th>学校序号</th>
-          <th>学校名称</th>
-          <th>学校英文</th>
+          <th>学校编号</th>
+          <th>中文名称</th>
+          <th>英文名称</th>
+          <th>简称</th>
+          <th>学校类型</th>
+          <th>所在省份</th>
+          <th>官网链接</th>
           <th>备注</th>
-          <th>国家</th>
-          <th>省份</th>
+          <th>项目数量</th>
           <th>操作</th>
         </tr>
       </thead>
+      <tbody></tbody>
     </table>
     <div class="pagination" id="school-pagination">
       <!-- <a href="#" class="page-link" data-page="${1}">1</a> -->
@@ -126,6 +129,7 @@
           <th>操作</th>
         </tr>
       </thead>
+      <tbody></tbody>
     </table>
 
     <div class="pagination" id="item-pagination">
