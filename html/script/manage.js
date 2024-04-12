@@ -231,6 +231,10 @@ $(document).ready(function() {
                 initSchool();
                 break;
             case 'manage-item':
+<<<<<<< HEAD
+                // initItem();
+=======
+>>>>>>> 262e624aca9aee2560551ee71766ee4fa254311a
                 break;
             case 'manage-user':
                 break;
@@ -520,6 +524,66 @@ $(document).ready(function() {
             }
         });
     }
+
+    function initItem(listIndex = 0){
+        $.ajax({
+            url: '/item/initPage',
+            type: 'GET',
+            success: function(data) {
+                $('#add-item-btn').prop('disabled', true);
+                var itemSwitch = $('#item-switch input[type="checkbox"]');
+                itemSwitch.prop('checked', false);
+                itemSwitch.change(function() {
+                    var readonly = !$(this).prop('checked');
+                    $('#add-item-btn').prop('disabled', readonly);
+                    $('.input-text').prop('readonly', readonly);
+                    $('.input-select').prop('disabled', readonly);
+                });
+                var allCountry = data.results;
+                var countrySelect = $('#country-select');
+                countrySelect.empty();
+                countrySelect.append('<option value="0">请选择国家</option>');
+                for (var i = 0; i < allCountry.length; i++) {
+                    var option = $(`<option value="${i+1}">${allCountry[i]}</option>`);
+                    countrySelect.append(option);
+                }
+                countrySelect.off('change').change(function() {
+                    var listIndex = $(this).val();
+                    // fetchSchoolData(listIndex);
+                    fetchSchoolList(listIndex);
+                });
+                countrySelect.val(listIndex).trigger('change');
+            }
+        });
+    }
+
+    function fetchSchoolList(listIndex = 0){
+        $.ajax({
+            url : '/item/selectSchool',
+            type : 'POST',
+            success: function(data){
+                var allSchool = data.results;
+                var schoolSelect = $('#school-select');
+                schoolSelect.empty();
+                schoolSelect.append('<option value="0">请选择学校</option>');
+                for (var i = 0; i < allSchool.length; i++) {
+                    var option = $(`<option value="${i+1}">${allSchool[i]}</option>`);
+                    schoolSelect.append(option);
+                }
+                schoolSelect.off('change').change(function() {
+                    var schoolListIndex = $(this).val();
+                    fetchItemData(schoolListIndex);
+                });
+                schoolSelect.val(listIndex).trigger('change');
+            }
+        });
+    }
+
+    function fetchItemData(){
+        console.log("fetchItemData");
+    }
+
+
 
     fetchCountryData();
     initCountry();

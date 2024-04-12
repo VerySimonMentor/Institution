@@ -2,3 +2,4 @@ logs/*.txt
 institution
 .vscode
 html/script/jQuery.js
+html/test_page.html

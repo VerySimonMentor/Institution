@@ -19,6 +19,7 @@ create table if not exists school(
     schoolEngName varchar(255) not null,
     schoolChiName varchar(255) not null,
     schoolAbbreviation varchar(255),
+    -- schoolType int not null,
     schoolType varchar(255) not null,
     province varchar(255) not null,
     officialWebLink varchar(255) not null,
@@ -43,4 +44,9 @@ create table if not exists user(
     userNumber varchar(255) not null,
     userLevel int not null,
     studentCount int
+);
+
+create table if not exists systemSetting(
+    maxUserLevel int not null,
+    schoolTypeList JSON
 );
