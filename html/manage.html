@@ -111,7 +111,7 @@
 
     <button class="add-btn" id="add-item-btn">添加项目</button>
 
-    <label class="switch">
+    <label class="switch", id="item-switch">
       <input type="checkbox">
       <span class="slider round"></span>
     </label>
@@ -220,15 +220,52 @@
             <th>操作</th>
           </tr>
         </thead>
-        <tbody>
-  
-        </tbody>
+        <tbody></tbody>
       </table>
     </div>
 
     <div class="save-btn-container">
       <button class="modal-button" id="save-province-btn">保存</button>
       <button class="modal-button" id="cancel-province-btn">取消</button>
+    </div>
+  </section>
+</div>
+
+<div id="item-model" class="modal" style="display:none">
+  <section class="content" id="item-edit-content" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+    <div class="item-container">
+      <div class="item-row">
+        <div id="item-name-tip">项目名称:</div>
+        <input type="text" id="item-name-input" placeholder="中文名称">
+      </div>
+      <div class="item-row">
+        <div id="level-description">展示文字:</div>
+        <input type="text" id="level-description-input" placeholder="展示文字">
+      </div>
+      <div class="item-row">
+        <div id="item-remark">备注:</div>
+        <input type="text" id="item-remark-input" placeholder="备注">
+      </div>
+      <div class="item-row">
+        <div id="province-table-title">返佣比例列表:</div>
+        <button class="modal-button" id="add-province-btn">添加</button>
+      </div>
+      <div class="item-row">
+        <table id="province-table">
+          <thead>
+            <tr>
+              <th>level</th>
+              <th>返佣比例</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="save-btn-container">
+        <button class="modal-button" id="save-item-btn">保存</button>
+        <button class="modal-button" id="cancel-item-btn">取消</button>
+      </div>
     </div>
   </section>
 </div>

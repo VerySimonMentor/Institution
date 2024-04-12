@@ -246,8 +246,8 @@ body, h1, table, th, td {
   z-index: 1; /* Sit on top */
   left: 25vw;
   top: 15vw;
-  width: 600px; /* Full width */
-  height: 400px; /* Full height */
+  width: 640px ; /* Full width */
+  height: 440px ; /* Full height */
   overflow: auto; /* Enable scroll if needed */
   background-color: rgb(0,0,0); /* Fallback color */
   background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
@@ -260,7 +260,7 @@ body, h1, table, th, td {
   border: 1px solid #888;
   height: 400px;
   width: 600px; /* Could be more or less, depending on screen size */
-  margin-top: 20px;
+  margin-top: 0px;
   padding: 20px;
 }
 /* 上方名称展示 */
@@ -309,3 +309,31 @@ body, h1, table, th, td {
 }
 /* 保存与取消按钮end */
 /* 模态对话框end */
+
+.item-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.item-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px; /* 如果需要的话，可以添加一些底部边距 */
+  justify-content: left;
+  gap:30px;
+}
+
+#item-edit-content {
+  background-color: #efebeb;
+  border: 1px solid #888;
+  height: 400px;
+  width: 600px;
+  padding: 20px;
+}
+
+#province-table {
+  width: 500px;
+  height: 230px;
+  border-collapse: collapse;
+  justify-content: center;
+}
