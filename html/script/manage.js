@@ -88,11 +88,10 @@ $(document).ready(function() {
                             $("#manage-school-content").css("display", "block");
                             $("#manage-school-content").css({
                                 "position": "absolute", // 使用绝对定位
-                                "top": "80px", // 距离顶部100px
-                                "left": "20vw" // 距离左侧50px
+                                "top": "80px", 
+                                "left": "20vw" 
                             });
                             initSchool(listIndex);
-                            $('#country-select').val(listIndex).trigger('change');
                         }
                     })(listIndex));
                     row.find('.btn-province').click((function(countryId, listIndex, currentPage) {
@@ -206,6 +205,7 @@ $(document).ready(function() {
     }
 
     $(".button-list-button").click(function() {
+        //侧边栏按钮section跳转
         //获取button id
         var buttonId = $(this).attr("id");
         //隐藏所有section
@@ -219,15 +219,32 @@ $(document).ready(function() {
             .css("display", "block")
             .css({
                 "position": "absolute", // 使用绝对定位
-                "top": "80px", // 距离顶部100px
-                "left": "20vw" // 距离左侧50px
+                "top": "80px", 
+                "left": "20vw",
             });
-        if (buttonId === 'manage-country') {
-            fetchCountryData();
-            initCountry();
-        } else if (buttonId === 'manage-school') {
-            initSchool();
+        switch (buttonId) {
+            case 'manage-country':
+                fetchCountryData();
+                initCountry();
+                break;
+            case 'manage-school':
+                initSchool();
+                break;
+            case 'manage-item':
+                break;
+            case 'manage-user':
+                break;
+            case 'system-set':
+                break;
+            default:
+                break;
         }
+        // if (buttonId === 'manage-country') {
+        //     fetchCountryData();
+        //     initCountry();
+        // } else if (buttonId === 'manage-school') {
+        //     initSchool();
+        // }
     });
 
     function fetchProvinceData(province) {
@@ -296,23 +313,25 @@ $(document).ready(function() {
                 });
                 var allCountry = data.results;
                 var countrySelect = $('#country-select');
+                countrySelect.empty();
+                countrySelect.append('<option value="0">请选择国家</option>');
                 for (var i = 0; i < allCountry.length; i++) {
                     var option = $(`<option value="${i+1}">${allCountry[i]}</option>`);
                     countrySelect.append(option);
                 }
-                countrySelect.change(function() {
+                countrySelect.off('change').change(function() {
                     var listIndex = $(this).val();
-                    fetchSchoolData(listIndex, pageNum);
+                    fetchSchoolData(listIndex);
                 });
                 countrySelect.val(listIndex).trigger('change');
             }
         });
     }
 
-    function fetchSchoolData(listIndex, pageNum, page = 1) {
+    function fetchSchoolData(listIndex, page = 1) {
         var data = {
             countryListIndex: listIndex - 1,
-            page: 1,
+            page: page,
             pageNum: pageNum
         }
         $.ajax({
@@ -352,7 +371,7 @@ $(document).ready(function() {
                     
                     var row = $(
                         `<tr>
-                            <td>${i+1}</td>
+                            <td>${i+1+(page-1)*pageNum}</td>
                             <td>${chiNameText.prop('outerHTML')}</td>
                             <td>${engNameText.prop('outerHTML')}</td>
                             <td>${abbreviationText.prop('outerHTML')}</td>
@@ -452,18 +471,18 @@ $(document).ready(function() {
         
     }
 
-    $(document).on('click', '.school-pagination .page-link', function(e) {
+    $(document).on('click', '#school-pagination .page-link', function(e) {
         e.preventDefault();
         currentSchoolPage = $(this).data('page');
         listIndex = $('#country-select').val();
-        fetchSchoolData(listIndex, pageNum, currentSchoolPage);
+        fetchSchoolData(listIndex, currentSchoolPage);
     });
 
     $("#add-school-btn").click(function() {
         var listIndex = $('#country-select').val();
         if (currentSchoolPage != totalSchoolPage) {
             currentSchoolPage = totalSchoolPage;
-            fetchSchoolData(listIndex, pageNum, currentSchoolPage);
+            fetchSchoolData(listIndex, currentSchoolPage);
         }
         $.ajax({
             url: 'school/create',
