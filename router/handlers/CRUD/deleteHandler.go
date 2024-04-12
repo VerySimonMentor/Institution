@@ -104,7 +104,7 @@ func DeleteSchoolHandler(ctx *gin.Context) {
 		logs.GetInstance().Logger.Errorf("DeleteSchoolHandler error %s", err)
 		return
 	}
-	_, err = redisClient.LRem(context.Background(), schoolKey, 0, deleteSchoolString).Result()
+	_, err = redisClient.LRem(context.Background(), schoolKey, deleteForm.SchoolListIndex, deleteSchoolString).Result()
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis删除失败"})
 		logs.GetInstance().Logger.Errorf("DeleteSchoolHandler error %s", err)
