@@ -1,8 +1,11 @@
 const pageNum = 10;
+
 var currentCountryPage = 1;
 var currentSchoolPage = 1;
+var currentItemPage = 1;
 var totalCountryPage;
 var totalSchoolPage;
+var totalItemPage;
 
 $(document).ready(function() {
     function fetchCountryData(page = currentCountryPage) {
@@ -108,7 +111,7 @@ $(document).ready(function() {
                                 },
                                 data: JSON.stringify(data),
                                 success: function(data) {
-                                    $('.modal').css('display', 'block');
+                                    $('#province-model').css('display', 'block');
                                     $("#manage-country-content").css('pointer-events', 'none');
                                     $("#manage-country-content").css('opacity', '0.5');
                                     $('#chinese-name-input').val(data.country.countryChiName);
@@ -133,7 +136,7 @@ $(document).ready(function() {
                                                 },
                                                 data: JSON.stringify(data),
                                                 success: function(data) {
-                                                    $('.modal').css('display', 'none');
+                                                    $('#province-model').css('display', 'none');
                                                     $("#manage-country-content").css('pointer-events', 'auto');
                                                     $("#manage-country-content").css('opacity', '1');
                                                     fetchCountryData(currentPage);
@@ -231,11 +234,13 @@ $(document).ready(function() {
                 initSchool();
                 break;
             case 'manage-item':
-                // initItem();
+                initItem();
                 break;
             case 'manage-user':
+                initUser();
                 break;
             case 'system-set':
+                initSystemSet();
                 break;
             default:
                 break;
@@ -292,7 +297,7 @@ $(document).ready(function() {
     })
 
     $('#cancel-province-btn').click(function(){
-        $('.modal').css('display', 'none');
+        $('#province-model').css('display', 'none');
         $("#manage-country-content").css('pointer-events', 'auto');
         $("#manage-country-content").css('opacity', '1');
     })
@@ -313,7 +318,7 @@ $(document).ready(function() {
                     $('.input-select').prop('disabled', readonly);
                 });
                 var allCountry = data.results;
-                var countrySelect = $('#country-select');
+                var countrySelect = $('#school-page-country-select');
                 countrySelect.empty();
                 countrySelect.append('<option value="0">请选择国家</option>');
                 for (var i = 0; i < allCountry.length; i++) {
@@ -434,8 +439,8 @@ $(document).ready(function() {
                     row.find('select.input-select').prop('disabled', readonly);
                     row.find('.btn-school-delete').click((function(schoolId, listIndex) {
                         return function() {
-                            alert('确定删除吗？')
-                            var countryListIndex = $('#country-select').val();
+                            alert('确定删除吗？');
+                            var countryListIndex = $('#school-page-country-select').val();
                             var data = {
                                 countryListIndex: countryListIndex - 1,
                                 schoolId: schoolId,
@@ -460,6 +465,20 @@ $(document).ready(function() {
                             });
                         }
                     })(school[i].schoolId, listIndex));
+
+                    var countryListIndex = $('#school-page-country-select').val();
+                    row.find('.btn-item').click((function(schoolListIndex, countryListIndex) {
+                        return function() {
+                            $("#manage-school-content").css("display", "none");
+                            $("#manage-item-content").css("display", "block");
+                            $("#manage-item-content").css({
+                                "position": "absolute", // 使用绝对定位
+                                "top": "80px", 
+                                "left": "20vw" 
+                            });
+                            initItem(countryListIndex, schoolListIndex);
+                        }
+                    })(listIndex, countryListIndex));
                 }
 
                 $('#school-pagination').empty();
@@ -475,12 +494,12 @@ $(document).ready(function() {
     $(document).on('click', '#school-pagination .page-link', function(e) {
         e.preventDefault();
         currentSchoolPage = $(this).data('page');
-        listIndex = $('#country-select').val();
+        listIndex = $('#school-page-country-select').val();
         fetchSchoolData(listIndex, currentSchoolPage);
     });
 
     $("#add-school-btn").click(function() {
-        var listIndex = $('#country-select').val();
+        var listIndex = $('#school-page-country-select').val();
         if (currentSchoolPage != totalSchoolPage) {
             currentSchoolPage = totalSchoolPage;
             fetchSchoolData(listIndex, currentSchoolPage);
@@ -502,7 +521,7 @@ $(document).ready(function() {
     });
 
     function schoolTextChange(schoolId, listIndex, field, value) {
-        var countryListIndex = $('#country-select').val();
+        var countryListIndex = $('#school-page-country-select').val();
         $.ajax({
             url: '/school/change',
             type: 'POST',
@@ -522,9 +541,9 @@ $(document).ready(function() {
         });
     }
 
-    function initItem(listIndex = 0){
+    function initItem(countrylistIndex = 0, schoolListIndex = 0){
         $.ajax({
-            url: '/item/initPage',
+            url: '/school/initPage',
             type: 'GET',
             success: function(data) {
                 $('#add-item-btn').prop('disabled', true);
@@ -537,7 +556,7 @@ $(document).ready(function() {
                     $('.input-select').prop('disabled', readonly);
                 });
                 var allCountry = data.results;
-                var countrySelect = $('#country-select');
+                var countrySelect = $('#item-page-country-select');
                 countrySelect.empty();
                 countrySelect.append('<option value="0">请选择国家</option>');
                 for (var i = 0; i < allCountry.length; i++) {
@@ -545,42 +564,206 @@ $(document).ready(function() {
                     countrySelect.append(option);
                 }
                 countrySelect.off('change').change(function() {
-                    var listIndex = $(this).val();
+                    // var listIndex = $(this).val();
                     // fetchSchoolData(listIndex);
-                    fetchSchoolList(listIndex);
+                    fetchSchoolList(schoolListIndex);
                 });
-                countrySelect.val(listIndex).trigger('change');
-            }
-        });
-    }
-
-    function fetchSchoolList(listIndex = 0){
-        $.ajax({
-            url : '/item/selectSchool',
-            type : 'POST',
-            success: function(data){
-                var allSchool = data.results;
-                var schoolSelect = $('#school-select');
-                schoolSelect.empty();
-                schoolSelect.append('<option value="0">请选择学校</option>');
-                for (var i = 0; i < allSchool.length; i++) {
-                    var option = $(`<option value="${i+1}">${allSchool[i]}</option>`);
-                    schoolSelect.append(option);
+                if(countrylistIndex != 0){
+                    countrySelect.val(countrylistIndex).trigger('change');
                 }
-                schoolSelect.off('change').change(function() {
-                    var schoolListIndex = $(this).val();
-                    fetchItemData(schoolListIndex);
-                });
-                schoolSelect.val(listIndex).trigger('change');
             }
         });
     }
 
-    function fetchItemData(){
-        console.log("fetchItemData");
+    function fetchSchoolList(schoolListIndex = 0){
+        var countryListIndex = $('#item-page-country-select').val();
+        $.get("/item/getSchool", {countryListIndex: countryListIndex-1}, function(data) {
+            var allSchool = data.results;
+            var schoolSelect = $('#item-page-school-select');
+            schoolSelect.empty();
+            schoolSelect.append('<option value="0">请选择学校</option>');
+            for (var i = 0; i < allSchool.length; i++) {
+                var option = $(`<option value="${i+1}">${allSchool[i]}</option>`);
+                schoolSelect.append(option);
+            }
+            schoolSelect.off('change').change(function() {
+                var schoolListIndex = $(this).val();
+                fetchItemData(schoolListIndex);
+            });
+            if(schoolListIndex != 0){
+                schoolSelect.val(schoolListIndex).trigger('change');
+            }
+        });
+    }
+
+    function fetchItemData(schoolListIndex, page = 1){
+        var countryListIndex = $('#item-page-country-select').val();
+        var data = {
+            schoolListIndex : schoolListIndex - 1,
+            countryListIndex : countryListIndex - 1,
+            page: page,
+            pageNum: pageNum
+        }
+        $.ajax({
+            url: '/school/editItem',
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            data: JSON.stringify(data),
+            success: function(data) {
+                var item = data.results;
+                totalItemPage = data.totalPage;
+                var table = $('#item-table tbody');
+                table.empty();
+                var itemSwitch = $('#item-switch input[type="checkbox"]');
+                var readonly = !itemSwitch.prop('checked');
+
+                for(let i=0; i<item.length; i++){
+                    var listIndex = (page - 1) * pageNum + i + 1;
+                    var itemName = $(`<input type="text" class="input-text" value="${item[i].itemName}" />`);
+                    var levelDescription = $(`<input type="text" class="input-text" value="${item[i].levelDescription}" />`);
+                    var itemRemark = $(`<input type="text" class="input-text" value="${item[i].itemRemark}" />`);
+                    var row = $(
+                        `<tr>
+                            <td>${listIndex}</td>
+                            <td>${itemName.prop('outerHTML')}</td>
+                            <td>${levelDescription.prop('outerHTML')}</td>
+                            <td>${itemRemark.prop('outerHTML')}</td>
+                            <td>${item[i].levelRate.length}</td>
+                            <td>
+                                <a href=# class="btn btn-item-edit">编辑</a>
+                                <a href=# class="btn btn-item-delete">删除</a>
+                            </td>
+                        </tr>`
+                    );
+                    table.append(row);
+                    row.find('input.input-text').eq(0).change((function(itemId, listIndex, field) {
+                        return function() {
+                            var value = $(this).val();
+                            itemTextChange(itemId, listIndex, field, value);
+                        }
+                    })(item[i].itemId, listIndex, 'itemName'));
+
+                    row.find('input.input-text').eq(1).change((function(itemId, listIndex, field) {
+                        return function() {
+                            var value = $(this).val();
+                            itemTextChange(itemId, listIndex, field, value);
+                        }
+                    })(item[i].itemId, listIndex, 'levelDescription'));
+
+                    row.find('input.input-text').eq(2).change((function(itemId, listIndex, field) {
+                        return function() {
+                            var value = $(this).val();
+                            itemTextChange(itemId, listIndex, field, value);
+                        }
+                    })(item[i].itemId, listIndex, 'itemRemark'));
+
+                    row.find('input.input-text').prop('readonly', readonly);
+                    row.find('.btn-item-delete').click((function(itemId, listIndex) {
+                        return function() {
+                            alert('确定删除吗？');
+                            var countryListIndex = $('#item-page-country-select').val();
+                            var schoolListIndex = $('#item-page-school-select').val();
+                            var data = {
+                                countryListIndex: countryListIndex - 1,
+                                schoolListIndex: schoolListIndex - 1,
+                                itemId: itemId,
+                                listIndex: listIndex - 1
+                            }
+                            $.ajax({
+                                url: '/item/delete',
+                                type: 'DELETE',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                data: JSON.stringify(data),
+                                success: function(data) {
+                                    if (table.children().length === 1) {
+                                        $('#item-pagination').children().last().remove();
+                                        if (currentItemPage > 1) {
+                                            currentItemPage--;
+                                        }
+                                    }
+                                    fetchItemData(schoolListIndex, currentItemPage);
+                                }
+                            });
+                        }
+                    })(item[i].itemId, listIndex));
+                }
+
+                $('#item-pagination').empty();
+                for (let i = 1; i <= totalItemPage; i++) {
+                    $('#item-pagination').append(`<a class="page-link" href="#" data-page="${i}">${i}</a>`);
+                }
+                $('#add-item-btn').prop('disabled', readonly);
+            }
+        });
+    }
+
+    $(document).on('click', '#item-pagination .page-link', function(e) {
+        e.preventDefault();
+        currentItemPage = $(this).data('page');
+        var schoolListIndex = $('#item-page-school-select').val();
+        fetchItemData(schoolListIndex, currentItemPage);
+    });
+
+    $("#add-item-btn").click(function() {
+        var countryListIndex = $('#item-page-country-select').val();
+        var schoolListIndex = $('#item-page-school-select').val();
+        if (currentItemPage != totalItemPage) {
+            currentItemPage = totalItemPage;
+            fetchItemData(schoolListIndex, currentItemPage);
+        }
+        $.ajax({
+            url: 'item/create',
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            data: JSON.stringify({
+                countryListIndex: countryListIndex - 1,
+                schoolListIndex: schoolListIndex - 1,
+                pageNum: pageNum,
+            }),
+            success: function(data) {
+                fetchItemData(schoolListIndex, data.totalPage);
+            }
+        });
+    });
+
+    function itemTextChange(itemId, listIndex, field, value) {
+        var countryListIndex = $('#item-page-country-select').val();
+        var schoolListIndex = $('#item-page-school-select').val();
+        $.ajax({
+            url: "/item/change",
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            data: JSON.stringify({
+                countryListIndex: countryListIndex-1,
+                schoolListIndex: schoolListIndex-1,
+                itemId: itemId,
+                listIndex: listIndex - 1,
+                updateField: field,
+                updateValue: value
+            }),
+            success: function(data){
+                console.log("edit item data success!");
+            }
+        });
     }
 
 
+
+    function initUser(){
+        console.log("initUser");
+    }
+
+    function initSystemSet(){
+        console.log("initSystemSet");
+    }
 
     fetchCountryData();
     initCountry();
