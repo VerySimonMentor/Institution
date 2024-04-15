@@ -180,10 +180,10 @@ func CreateItemHandler(ctx *gin.Context) {
 	mysqlClient := mysql.GetClient()
 	redisClient := redis.GetClient()
 	itemSQL := mysql.ItemSQL{
-		ItemName:        "default",
-		LevelDescrption: "默认",
-		LevelRate:       []byte("{}"),
-		ItemRemark:      "",
+		ItemName:         "default",
+		LevelDescription: "默认",
+		LevelRate:        []byte("{}"),
+		ItemRemark:       "",
 	}
 
 	if err := mysqlClient.Create(&itemSQL).Error; err != nil {
@@ -200,7 +200,7 @@ func CreateItemHandler(ctx *gin.Context) {
 	itemByte, _ := json.Marshal(Item{
 		ItemId:          itemSQL.ItemId,
 		ItemName:        itemSQL.ItemName,
-		LevelDescrption: itemSQL.LevelDescrption,
+		LevelDescrption: itemSQL.LevelDescription,
 		LevelRate:       make([]Level, 0),
 		ItemRemark:      itemSQL.ItemRemark,
 	})

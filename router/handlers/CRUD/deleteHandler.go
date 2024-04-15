@@ -134,7 +134,7 @@ type DeleteItemForm struct {
 	ItemListIndex    int64 `json:"itemListIndex"`
 }
 
-func DeleleItemHandler(ctx *gin.Context) {
+func DeleteItemHandler(ctx *gin.Context) {
 	var deleteItemForm DeleteItemForm
 	if err := ctx.ShouldBindJSON(&deleteItemForm); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"err": "参数错误"})
