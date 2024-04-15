@@ -192,11 +192,84 @@ func InitSchoolHandler(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"results": allCountry})
 }
 
-func ShowItemHandler(ctx *gin.Context) {
-
+type ShowItemForm struct {
+	CountryListIndex int64 `json:"countryListIndex"`
+	SchoolListIndex  int64 `json:"schoolListIndex"`
+	Page             int   `json:"page"`
+	PageNum          int   `json:"pageNum"`
 }
 
-func InitItemHnadler(ctx *gin.Context) {
+type ItemResp struct {
+	Item
+	LevelNum int `json:"levelNum"`
+}
+
+func ShowItemHandler(ctx *gin.Context) {
+	var showItemForm ShowItemForm
+	if err := ctx.ShouldBindJSON(&showItemForm); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"err": "参数错误"})
+		logs.GetInstance().Logger.Errorf("ShowItemHandler error %s", err)
+		return
+	}
+
+	redisClient := redis.GetClient()
+	countryStr, err := redisClient.LIndex(ctx, "country", showItemForm.CountryListIndex).Result()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis查询失败"})
+		logs.GetInstance().Logger.Errorf("ShowItemHandler error %s", err)
+		return
+	}
+	var country Country
+	if err := json.Unmarshal([]byte(countryStr), &country); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "json转换失败"})
+		logs.GetInstance().Logger.Errorf("ShowItemHandler error %s", err)
+		return
+	}
+
+	schoolKey := fmt.Sprintf(SchoolKey, country.CountryId)
+	schoolStr, err := redisClient.LIndex(ctx, schoolKey, showItemForm.SchoolListIndex).Result()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis查询失败"})
+		logs.GetInstance().Logger.Errorf("ShowItemHandler error %s", err)
+		return
+	}
+	var school School
+	if err := json.Unmarshal([]byte(schoolStr), &school); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "json转换失败"})
+		logs.GetInstance().Logger.Errorf("ShowItemHandler error %s", err)
+		return
+	}
+
+	itemKey := fmt.Sprintf(ItemKey, country.CountryId, school.SchoolId)
+	itemList := getItemInRedis(ctx, itemKey, school.SchoolAndItem)
+	if len(itemList) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{"results": []Item{}})
+		return
+	}
+
+	start, end := pageRange(showItemForm.Page, showItemForm.PageNum, len(itemList))
+	var totalPage int
+	if len(itemList)%showItemForm.PageNum == 0 {
+		totalPage = len(itemList) / showItemForm.PageNum
+	} else {
+		totalPage = len(itemList)/showItemForm.PageNum + 1
+	}
+	itemResp := make([]ItemResp, end-start)
+	for i := start; i < end; i++ {
+		index := (showItemForm.Page-1)*showItemForm.PageNum + i - start
+		itemResp[i-start] = ItemResp{
+			Item:     itemList[index],
+			LevelNum: len(itemList[index].LevelRate),
+		}
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"results":   itemResp,
+		"totalPage": totalPage,
+	})
+}
+
+func InitItemHandler(ctx *gin.Context) {
 	countryListIndexStr := ctx.Query("countryListIndex")
 	countryListIndex, err := strconv.ParseInt(countryListIndexStr, 10, 64)
 	if err != nil {

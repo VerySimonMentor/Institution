@@ -28,6 +28,7 @@ func RouterInit(config *config.Config) *gin.Engine {
 	})
 	ginRouter.GET("/country/create", crud.CreateCountryHandler)
 	ginRouter.GET("/school/initPage", crud.InitSchoolHandler)
+	ginRouter.GET("/item/getSchool", crud.InitItemHandler)
 
 	ginRouter.POST("/country/show", crud.ShowCountryHandler)
 	ginRouter.POST("/login", func(ctx *gin.Context) {
@@ -39,6 +40,8 @@ func RouterInit(config *config.Config) *gin.Engine {
 	ginRouter.POST("/country/editSchool", crud.ShowSchoolHandler)
 	ginRouter.POST("/school/create", crud.CreateSchoolHandler)
 	ginRouter.POST("/school/change", crud.UpdateSchoolHandler)
+	ginRouter.POST("/school/editItem", crud.ShowItemHandler)
+	ginRouter.POST("/item/create", crud.CreateItemHandler)
 
 	ginRouter.DELETE("/country/delete", crud.DeleteCountryHandler)
 	ginRouter.DELETE("/school/delete", crud.DeleteSchoolHandler)

@@ -159,3 +159,102 @@ func CreateSchoolHandler(ctx *gin.Context) {
 		"totalPage": totalPage,
 	})
 }
+
+type CreateItemForm struct {
+	CountryListIndex int64 `json:"countryListIndex"`
+	SchoolListIndex  int64 `json:"schoolListIndex"`
+	PageNum          int   `json:"pageNum"`
+}
+
+func CreateItemHandler(ctx *gin.Context) {
+	var createItemForm CreateItemForm
+	if err := ctx.ShouldBindJSON(&createItemForm); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"err": "参数错误"})
+		logs.GetInstance().Logger.Errorf("CreateItemHandler error %s", err)
+		return
+	}
+	if createItemForm.CountryListIndex < 0 || createItemForm.SchoolListIndex < 0 {
+		ctx.JSON(http.StatusBadRequest, gin.H{"err": "参数错误"})
+		return
+	}
+	mysqlClient := mysql.GetClient()
+	redisClient := redis.GetClient()
+	itemSQL := mysql.ItemSQL{
+		ItemName:        "default",
+		LevelDescrption: "默认",
+		LevelRate:       []byte("{}"),
+		ItemRemark:      "",
+	}
+
+	if err := mysqlClient.Create(&itemSQL).Error; err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "创建失败"})
+		logs.GetInstance().Logger.Errorf("CreateItemHandler error %s", err)
+		return
+	}
+	if err := mysqlClient.Last(&itemSQL).Error; err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "创建失败"})
+		logs.GetInstance().Logger.Errorf("CreateItemHandler error %s", err)
+		return
+	}
+
+	itemByte, _ := json.Marshal(Item{
+		ItemId:          itemSQL.ItemId,
+		ItemName:        itemSQL.ItemName,
+		LevelDescrption: itemSQL.LevelDescrption,
+		LevelRate:       make([]Level, 0),
+		ItemRemark:      itemSQL.ItemRemark,
+	})
+	countryString, err := redisClient.LIndex(context.Background(), "country", createItemForm.CountryListIndex).Result()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis查询失败"})
+		logs.GetInstance().Logger.Errorf("CreateItemHandler error %s", err)
+		return
+	}
+	var country Country
+	if err := json.Unmarshal([]byte(countryString), &country); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "json转换失败"})
+		logs.GetInstance().Logger.Errorf("CreateItemHandler error %s", err)
+		return
+	}
+	schoolKey := fmt.Sprintf(SchoolKey, country.CountryId)
+	schoolString, err := redisClient.LIndex(context.Background(), schoolKey, createItemForm.SchoolListIndex).Result()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis查询失败"})
+		logs.GetInstance().Logger.Errorf("CreateItemHandler error %s", err)
+		return
+	}
+	var school School
+	if err := json.Unmarshal([]byte(schoolString), &school); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "json转换失败"})
+		logs.GetInstance().Logger.Errorf("CreateItemHandler error %s", err)
+		return
+	}
+	school.SchoolAndItem = append(school.SchoolAndItem, itemSQL.ItemId)
+	schoolByte, _ := json.Marshal(school)
+	redisClient.LSet(context.Background(), schoolKey, createItemForm.SchoolListIndex, schoolByte)
+
+	itemKey := fmt.Sprintf(ItemKey, country.CountryId, school.SchoolId)
+	redisClient.RPush(context.Background(), itemKey, itemByte)
+	itemNum := int(redisClient.LLen(context.Background(), itemKey).Val())
+	var totalPage int
+	if itemNum%createItemForm.PageNum == 0 {
+		totalPage = itemNum / createItemForm.PageNum
+	} else {
+		totalPage = itemNum/createItemForm.PageNum + 1
+	}
+
+	go func(school School) {
+		schoolAndItem, _ := json.Marshal(school.SchoolAndItem)
+		mysqlClient := mysql.GetClient()
+		err := mysqlClient.Model(&mysql.SchoolSQL{}).Where("schoolId = ?", school.SchoolId).Update("schoolAndItem", schoolAndItem).Error
+		if err != nil {
+			logs.GetInstance().Logger.Errorf("CreateItemHandler error %s", err)
+		}
+	}(school)
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"msg":       "创建成功",
+		"itemId":    itemSQL.ItemId,
+		"totalPage": totalPage,
+	})
+}
