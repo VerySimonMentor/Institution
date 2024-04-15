@@ -5,8 +5,6 @@ const (
 	ItemKey   = "%d-%d-item"
 )
 
-var TypeList = [3]string{"本科", "硕士", "博士"}
-
 type Country struct {
 	CountryId        int        `json:"countryId"`
 	CountryEngName   string     `json:"countryEngName"`
@@ -25,7 +23,7 @@ type School struct {
 	SchoolEngName      string `json:"schoolEngName"`
 	SchoolChiName      string `json:"schoolChiName"`
 	SchoolAbbreviation string `json:"schoolAbbreviation"`
-	SchoolType         string `json:"schoolType"`
+	SchoolType         int    `json:"schoolType"`
 	Province           string `json:"province"`
 	OfficialWebLink    string `json:"officialWebLink"`
 	SchoolRemark       string `json:"schoolRemark"`
@@ -33,11 +31,16 @@ type School struct {
 }
 
 type Item struct {
-	ItemId          int    `json:"itemId"`
-	ItemName        string `json:"itemName"`
-	LevelDescrption string `json:"levelDescrption"`
-	LevelRate       string `json:"levelRate"`
-	ItemRemark      string `json:"itemRemark"`
+	ItemId          int     `json:"itemId"`
+	ItemName        string  `json:"itemName"`
+	LevelDescrption string  `json:"levelDescrption"`
+	LevelRate       []Level `json:"levelRate"`
+	ItemRemark      string  `json:"itemRemark"`
+}
+
+type Level struct {
+	LevelId   int `json:"levelId"`
+	LevelRate int `json:"levelRate"`
 }
 
 type User struct {
@@ -48,4 +51,14 @@ type User struct {
 	UserNumber   string `json:"userNumber"`
 	UserLevel    int    `json:"userLevel"`
 	StudentCount int    `json:"studentCount"`
+}
+
+type System struct {
+	MaxUserLevel   int          `json:"maxUserLevel"`
+	SchoolTyepList []SchoolType `json:"schoolTyepList"`
+}
+
+type SchoolType struct {
+	SchoolTypeId   int    `json:"schoolTypeId"`
+	SchoolTypeName string `json:"schoolTypeName"`
 }

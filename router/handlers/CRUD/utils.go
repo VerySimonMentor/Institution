@@ -208,3 +208,158 @@ func checkSchoolInRedis(ctx *gin.Context, schoolKey string) bool {
 
 	return true
 }
+
+func getItemInRedis(ctx *gin.Context, itemKey string, schoolAndItem []int) []Item {
+	redisClient := redis.GetClient()
+	mysqlClient := mysql.GetClient()
+
+	if !checkItemInRedis(ctx, itemKey) {
+		itemListSQL := make([]mysql.ItemSQL, len(schoolAndItem))
+		for i, itemId := range schoolAndItem {
+			item := mysql.ItemSQL{}
+			if err := mysqlClient.Model(&mysql.ItemSQL{}).Where("itemId = ?", itemId).Find(&item).Error; err != nil {
+				ctx.JSON(http.StatusInternalServerError, gin.H{"err": "查询失败"})
+				logs.GetInstance().Logger.Errorf("get item in redis error %s", err)
+				return nil
+			}
+			itemListSQL[i] = item
+		}
+		if len(itemListSQL) == 0 {
+			return make([]Item, 0)
+		}
+
+		itemList := make([]Item, len(itemListSQL))
+		for i, item := range itemListSQL {
+			var levelRate []Level
+			json.Unmarshal(item.LevelRate, &levelRate)
+			itemList[i] = Item{
+				ItemId:          item.ItemId,
+				ItemName:        item.ItemName,
+				LevelDescrption: item.LevelDescrption,
+				LevelRate:       levelRate,
+				ItemRemark:      item.ItemRemark,
+			}
+		}
+		itemJSON := make([][]byte, len(itemList))
+		for i, item := range itemList {
+			var err error
+			itemJSON[i] = make([]byte, 0)
+			itemJSON[i], err = json.Marshal(item)
+			if err != nil {
+				ctx.JSON(http.StatusInternalServerError, gin.H{"err": "json转换失败"})
+				logs.GetInstance().Logger.Errorf("ShowItemHandler error %s", err)
+				return nil
+			}
+			if err = redisClient.RPush(context.Background(), itemKey, itemJSON[i]).Err(); err != nil {
+				ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis存储失败"})
+				logs.GetInstance().Logger.Errorf("ShowItemHandler error %s", err)
+				return nil
+			}
+		}
+	}
+
+	itemString, err := redisClient.LRange(context.Background(), itemKey, 0, -1).Result()
+	itemList := make([]Item, len(schoolAndItem))
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis查询失败"})
+		logs.GetInstance().Logger.Errorf("ShowItemHandler error %s", err)
+		return nil
+	} else {
+		for i, item := range itemString {
+			var itemStruct Item
+			if err := json.Unmarshal([]byte(item), &itemStruct); err != nil {
+				ctx.JSON(http.StatusInternalServerError, gin.H{"err": "json转换失败"})
+				logs.GetInstance().Logger.Errorf("ShowItemHandler error %s", err)
+				return nil
+			}
+			itemList[i] = itemStruct
+		}
+	}
+
+	return itemList
+}
+
+func checkItemInRedis(ctx *gin.Context, itemKey string) bool {
+	redisClient := redis.GetClient()
+	keytype, err := redisClient.Type(context.Background(), itemKey).Result()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis查询失败"})
+		logs.GetInstance().Logger.Errorf("ShowItemHandler error %s", err)
+		return false
+	}
+	if keytype != "list" {
+		// ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis类型错误"})
+		// logs.GetInstance().Logger.Errorf("ShowItemHandler error %s", err)
+		return false
+	}
+
+	return true
+}
+
+func getSystemInRedis(ctx *gin.Context) System {
+	redisClient := redis.GetClient()
+
+	if !checkSystemInRedis(ctx) {
+		mysqlClient := mysql.GetClient()
+		systemSQL := mysql.SystemSQL{}
+		var count int64
+
+		mysqlClient.Model(&mysql.SystemSQL{}).Count(&count)
+		if count == 0 {
+			return System{
+				MaxUserLevel:   0,
+				SchoolTyepList: make([]SchoolType, 0),
+			}
+		}
+
+		if err := mysqlClient.Model(&mysql.SystemSQL{}).First(&systemSQL).Error; err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"err": "查询失败"})
+			logs.GetInstance().Logger.Errorf("ShowSystemHandler error %s", err)
+			return System{}
+		}
+		var schoolTyepList []SchoolType
+		json.Unmarshal(systemSQL.SchoolTyepList, &schoolTyepList)
+		system := System{
+			MaxUserLevel:   systemSQL.MaxUserLevel,
+			SchoolTyepList: schoolTyepList,
+		}
+		systemJSON, _ := json.Marshal(system)
+		if err := redisClient.Set(context.Background(), "system", systemJSON, 0).Err(); err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis存储失败"})
+			logs.GetInstance().Logger.Errorf("ShowSystemHandler error %s", err)
+			return System{}
+		}
+	}
+
+	systemString, err := redisClient.Get(context.Background(), "system").Result()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis查询失败"})
+		logs.GetInstance().Logger.Errorf("ShowSystemHandler error %s", err)
+		return System{}
+	}
+	var system System
+	if err := json.Unmarshal([]byte(systemString), &system); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "json转换失败"})
+		logs.GetInstance().Logger.Errorf("ShowSystemHandler error %s", err)
+		return System{}
+	}
+
+	return system
+}
+
+func checkSystemInRedis(ctx *gin.Context) bool {
+	redisClient := redis.GetClient()
+	keytype, err := redisClient.Type(context.Background(), "system").Result()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis查询失败"})
+		logs.GetInstance().Logger.Errorf("ShowSystemHandler error %s", err)
+		return false
+	}
+	if keytype != "string" {
+		// ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis类型错误"})
+		// logs.GetInstance().Logger.Errorf("ShowSystemHandler error %s", err)
+		return false
+	}
+
+	return true
+}
