@@ -178,7 +178,7 @@ func ShowSchoolHandler(ctx *gin.Context) {
 
 func InitSchoolHandler(ctx *gin.Context) {
 	countryList := getCountryInRedis(ctx)
-	allCountry := make([]string, len(countryList))
+	allCountry := make([]string, 0, len(countryList))
 	if countryList == nil {
 		logs.GetInstance().Logger.Errorf("InitSchoolHandler error")
 		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "查询失败"})

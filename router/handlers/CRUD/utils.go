@@ -300,8 +300,19 @@ func getSystemInRedis(ctx *gin.Context) System {
 	redisClient := redis.GetClient()
 
 	if !checkSystemInRedis(ctx) {
+		mysqlClient := mysql.GetClient()
 		systemSQL := mysql.SystemSQL{}
-		if err := mysql.GetClient().Model(&mysql.SystemSQL{}).First(&systemSQL).Error; err != nil {
+		var count int64
+
+		mysqlClient.Model(&mysql.SystemSQL{}).Count(&count)
+		if count == 0 {
+			return System{
+				MaxUserLevel:   0,
+				SchoolTyepList: make([]SchoolType, 0),
+			}
+		}
+
+		if err := mysqlClient.Model(&mysql.SystemSQL{}).First(&systemSQL).Error; err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"err": "查询失败"})
 			logs.GetInstance().Logger.Errorf("ShowSystemHandler error %s", err)
 			return System{}

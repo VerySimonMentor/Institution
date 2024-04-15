@@ -231,10 +231,7 @@ $(document).ready(function() {
                 initSchool();
                 break;
             case 'manage-item':
-<<<<<<< HEAD
                 // initItem();
-=======
->>>>>>> 262e624aca9aee2560551ee71766ee4fa254311a
                 break;
             case 'manage-user':
                 break;
