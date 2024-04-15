@@ -167,7 +167,7 @@ body, h1, table, th, td {
     margin-left: 5px;
   }
 
-  #country-select {
+  .country-select {
     background-color: #f0f0f0;
     color: #2e0d0d;
     border: 2px solid #ccc;
