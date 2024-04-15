@@ -235,7 +235,7 @@ func getItemInRedis(ctx *gin.Context, itemKey string, schoolAndItem []int) []Ite
 			itemList[i] = Item{
 				ItemId:          item.ItemId,
 				ItemName:        item.ItemName,
-				LevelDescrption: item.LevelDescrption,
+				LevelDescrption: item.LevelDescription,
 				LevelRate:       levelRate,
 				ItemRemark:      item.ItemRemark,
 			}

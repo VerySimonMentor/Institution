@@ -226,3 +226,91 @@ func UpdateSchoolHandler(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{"msg": "更新成功"})
 }
+
+type UpdateItemForm struct {
+	CountryListIndex int64       `json:"countryListIndex"`
+	SchoolListIndex  int64       `json:"schoolListIndex"`
+	ItemListIndex    int64       `json:"itemListIndex"`
+	ItemId           int         `json:"itemId"`
+	UpdateField      string      `json:"updateField"`
+	UpdateValue      interface{} `json:"updateValue"`
+}
+
+func UpdateItemHandler(ctx *gin.Context) {
+	var updateItemForm UpdateItemForm
+	if err := ctx.ShouldBindJSON(&updateItemForm); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"err": "参数错误"})
+		logs.GetInstance().Logger.Errorf("UpdateItemHandler error %s", err)
+		return
+	}
+
+	redisClient := redis.GetClient()
+	countryString, err := redisClient.LIndex(ctx, "country", updateItemForm.CountryListIndex).Result()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis查询失败"})
+		logs.GetInstance().Logger.Errorf("UpdateItemHandler error %s", err)
+		return
+	}
+	var country Country
+	if err := json.Unmarshal([]byte(countryString), &country); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "json转换失败"})
+		logs.GetInstance().Logger.Errorf("UpdateItemHandler error %s", err)
+		return
+	}
+
+	schoolKey := fmt.Sprintf(SchoolKey, country.CountryId)
+	schoolString, err := redisClient.LIndex(ctx, schoolKey, updateItemForm.SchoolListIndex).Result()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis查询失败"})
+		logs.GetInstance().Logger.Errorf("UpdateItemHandler error %s", err)
+		return
+	}
+	var school School
+	if err := json.Unmarshal([]byte(schoolString), &school); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "json转换失败"})
+		logs.GetInstance().Logger.Errorf("UpdateItemHandler error %s", err)
+		return
+	}
+
+	itemKey := fmt.Sprintf(ItemKey, country.CountryId, school.SchoolId)
+	itemString, err := redisClient.LIndex(ctx, itemKey, updateItemForm.ItemListIndex).Result()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis查询失败"})
+		logs.GetInstance().Logger.Errorf("UpdateItemHandler error %s", err)
+		return
+	}
+	var item Item
+	if err := json.Unmarshal([]byte(itemString), &item); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "json转换失败"})
+		logs.GetInstance().Logger.Errorf("UpdateItemHandler error %s", err)
+		return
+	}
+
+	updateValue := updateItemForm.UpdateValue.(string)
+	switch updateItemForm.UpdateField {
+	case "itemName":
+		item.ItemName = updateValue
+	case "levelDescrption":
+		item.LevelDescrption = updateValue
+	case "itemRemark":
+		item.ItemRemark = updateValue
+	}
+	itemByte, _ := json.Marshal(item)
+	err = redisClient.LSet(ctx, itemKey, updateItemForm.ItemListIndex, itemByte).Err()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis更新失败"})
+		logs.GetInstance().Logger.Errorf("UpdateItemHandler error %s", err)
+		return
+	}
+
+	go func(updateItemForm UpdateItemForm) {
+		mysqlClient := mysql.GetClient()
+		updateValue := updateItemForm.UpdateValue.(string)
+		err := mysqlClient.Model(&mysql.ItemSQL{}).Where("itemId = ?", updateItemForm.ItemId).UpdateColumn(updateItemForm.UpdateField, updateValue).Error
+		if err != nil {
+			logs.GetInstance().Logger.Errorf("UpdateItemHandler error %s", err)
+		}
+	}(updateItemForm)
+
+	ctx.JSON(http.StatusOK, gin.H{"msg": "更新成功"})
+}

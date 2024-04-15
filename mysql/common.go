@@ -29,11 +29,11 @@ func (s SchoolSQL) TableName() string {
 }
 
 type ItemSQL struct {
-	ItemId          int    `gorm:"column:itemId"`
-	ItemName        string `gorm:"column:itemName"`
-	LevelDescrption string `gorm:"column:levelDescrption"`
-	LevelRate       []byte `gorm:"column:levelRate"`
-	ItemRemark      string `gorm:"column:itemRemark"`
+	ItemId           int    `gorm:"column:itemId"`
+	ItemName         string `gorm:"column:itemName"`
+	LevelDescription string `gorm:"column:levelDescription"`
+	LevelRate        []byte `gorm:"column:levelRate"`
+	ItemRemark       string `gorm:"column:itemRemark"`
 }
 
 func (i ItemSQL) TableName() string {
