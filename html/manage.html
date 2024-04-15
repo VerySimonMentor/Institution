@@ -31,8 +31,8 @@
     </ul>
   </aside>
 
-  <!-- <section class=“content” id="manage-country-content" style="position: absolute; top: 80px; left: 20vw"> -->
-  <section class=“content” id="manage-country-content" style="display: none;">
+  <section class=“content” id="manage-country-content" style="position: absolute; top: 80px; left: 20vw">
+  <!-- <section class=“content” id="manage-country-content" style="display: none;"> -->
     <button class="add-btn" id="add-country-btn">添加国家</button>
 
     <label class="switch" id="country-switch">
@@ -63,14 +63,13 @@
 
   <section class=“content” id="manage-school-content" style="display: none;">
     <!-- school management -->
-    <select id="country-select">
+    <select class="country-select" id="school-page-country-select">
       <option value="0">请选择国家</option>
-      <option value="1">中华人民共和国</option>
     </select>
 
     <button class="add-btn" id="add-school-btn">添加学校</button>
 
-    <label class="switch">
+    <label class="switch" id="school-switch">
       <input type="checkbox">
       <span class="slider round"></span>
     </label>
@@ -79,15 +78,19 @@
     <table id="school-table">
       <thead>
         <tr>
-          <th>学校序号</th>
-          <th>学校名称</th>
-          <th>学校英文</th>
+          <th>学校编号</th>
+          <th>中文名称</th>
+          <th>英文名称</th>
+          <th>简称</th>
+          <th>学校类型</th>
+          <th>所在省份</th>
+          <th>官网链接</th>
           <th>备注</th>
-          <th>国家</th>
-          <th>省份</th>
+          <th>项目数量</th>
           <th>操作</th>
         </tr>
       </thead>
+      <tbody></tbody>
     </table>
     <div class="pagination" id="school-pagination">
       <!-- <a href="#" class="page-link" data-page="${1}">1</a> -->
@@ -96,19 +99,17 @@
 
   <section class=“content” id="manage-item-content" style="display: none;">
     <!-- item management -->
-    <select id="country-select">
+    <select class="country-select" id="item-page-country-select">
       <option value="0">请选择国家</option>
-      <option value="1">中华人民共和国</option>
     </select>
 
-    <select id="school-select">
+    <select class="country-select" id="item-page-school-select">
       <option value="0">请选择学校</option>
-      <option value="1">大连民族大学大大学</option>
     </select>
 
     <button class="add-btn" id="add-item-btn">添加项目</button>
 
-    <label class="switch">
+    <label class="switch", id="item-switch">
       <input type="checkbox">
       <span class="slider round"></span>
     </label>
@@ -126,6 +127,7 @@
           <th>操作</th>
         </tr>
       </thead>
+      <tbody></tbody>
     </table>
 
     <div class="pagination" id="item-pagination">
@@ -157,6 +159,7 @@
           <th>操作</th>
         </tr>
       </thead>
+      <tbody></tbody> 
     </table>
 
     <div class="pagination" id="user-pagination">
@@ -202,6 +205,10 @@
 
     <div class="province-table-container">
       <div class="province-table-title">国家下的省份列表</div>
+      <button class="modal-button" id="add-province-btn">添加</button>
+    </div>
+    
+    <div id="province-table-container">
       <table id="province-table">
         <thead>
           <tr>
@@ -211,15 +218,52 @@
             <th>操作</th>
           </tr>
         </thead>
-        <tbody>
-
-        </tbody>
+        <tbody></tbody>
       </table>
     </div>
 
     <div class="save-btn-container">
-      <button class="modal button" id="save-province-btn">保存</button>
-      <button class="modal button" id="cancel-province-btn">取消</button>
+      <button class="modal-button" id="save-province-btn">保存</button>
+      <button class="modal-button" id="cancel-province-btn">取消</button>
+    </div>
+  </section>
+</div>
+
+<div id="item-model" class="modal" style="display:none">
+  <section class="content" id="item-edit-content" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+    <div class="item-container">
+      <div class="item-row">
+        <div id="item-name-tip">项目名称:</div>
+        <input type="text" id="item-name-input" placeholder="中文名称">
+      </div>
+      <div class="item-row">
+        <div id="level-description">展示文字:</div>
+        <input type="text" id="level-description-input" placeholder="展示文字">
+      </div>
+      <div class="item-row">
+        <div id="item-remark">备注:</div>
+        <input type="text" id="item-remark-input" placeholder="备注">
+      </div>
+      <div class="item-row">
+        <div id="province-table-title">返佣比例列表:</div>
+        <button class="modal-button" id="add-province-btn">添加</button>
+      </div>
+      <div class="item-row">
+        <table id="province-table">
+          <thead>
+            <tr>
+              <th>level</th>
+              <th>返佣比例</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="save-btn-container">
+        <button class="modal-button" id="save-item-btn">保存</button>
+        <button class="modal-button" id="cancel-item-btn">取消</button>
+      </div>
     </div>
   </section>
 </div>

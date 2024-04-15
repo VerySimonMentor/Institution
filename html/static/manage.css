@@ -167,7 +167,7 @@ body, h1, table, th, td {
     margin-left: 5px;
   }
 
-  #country-select {
+  .country-select {
     background-color: #f0f0f0;
     color: #2e0d0d;
     border: 2px solid #ccc;
@@ -197,7 +197,7 @@ body, h1, table, th, td {
   }
 
   #school-table{
-    width: 1200px;
+    width: 1600px;
     border-collapse: collapse;
     margin-top: 20px;
     margin-left: 10px;
@@ -241,16 +241,17 @@ body, h1, table, th, td {
 
 /* 模态对话框 */
 .modal {
-  display: block; /* 默认隐藏 */
+  display: none; /* 默认隐藏 */
   position: fixed; /* Stay in place */
   z-index: 1; /* Sit on top */
-  left: 20vw;
-  top: 20vw;
-  width: 600px; /* Full width */
-  height: 400px; /* Full height */
+  left: 25vw;
+  top: 15vw;
+  width: 640px ; /* Full width */
+  height: 440px ; /* Full height */
   overflow: auto; /* Enable scroll if needed */
   background-color: rgb(0,0,0); /* Fallback color */
   background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+  z-index: 10000;
 }
 
 /* 模态对话框内容 */
@@ -259,7 +260,7 @@ body, h1, table, th, td {
   border: 1px solid #888;
   height: 400px;
   width: 600px; /* Could be more or less, depending on screen size */
-  margin-top: 20px;
+  margin-top: 0px;
   padding: 20px;
 }
 /* 上方名称展示 */
@@ -282,10 +283,16 @@ body, h1, table, th, td {
   display: flex;
   gap: 20px;
 }
-#province-table{
+#province-table-container{
   margin-top: 5px;
   width: 600px;
   height: 250px;
+  border-collapse: collapse;
+  overflow-y: auto;
+}
+#province-table{
+  width: 100%;
+  height: 100%;
   border-collapse: collapse;
 }
 /* 表格展示end */
@@ -302,3 +309,31 @@ body, h1, table, th, td {
 }
 /* 保存与取消按钮end */
 /* 模态对话框end */
+
+.item-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.item-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px; /* 如果需要的话，可以添加一些底部边距 */
+  justify-content: left;
+  gap:30px;
+}
+
+#item-edit-content {
+  background-color: #efebeb;
+  border: 1px solid #888;
+  height: 400px;
+  width: 600px;
+  padding: 20px;
+}
+
+#province-table {
+  width: 500px;
+  height: 230px;
+  border-collapse: collapse;
+  justify-content: center;
+}

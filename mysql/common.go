@@ -17,7 +17,7 @@ type SchoolSQL struct {
 	SchoolEngName      string `gorm:"column:schoolEngName"`
 	SchoolChiName      string `gorm:"column:schoolChiName"`
 	SchoolAbbreviation string `gorm:"column:schoolAbbreviation"`
-	SchoolType         string `gorm:"column:schoolType"`
+	SchoolType         int    `gorm:"column:schoolType"`
 	Province           string `gorm:"column:province"`
 	OfficialWebLink    string `gorm:"column:officialWebLink"`
 	SchoolRemark       string `gorm:"column:schoolRemark"`
@@ -29,11 +29,11 @@ func (s SchoolSQL) TableName() string {
 }
 
 type ItemSQL struct {
-	ItemId          int    `gorm:"column:itemId"`
-	ItemName        string `gorm:"column:itemName"`
-	LevelDescrption string `gorm:"column:levelDescrption"`
-	LevelRate       string `gorm:"column:levelRate"`
-	ItemRemark      string `gorm:"column:itemRemark"`
+	ItemId           int    `gorm:"column:itemId"`
+	ItemName         string `gorm:"column:itemName"`
+	LevelDescription string `gorm:"column:levelDescription"`
+	LevelRate        []byte `gorm:"column:levelRate"`
+	ItemRemark       string `gorm:"column:itemRemark"`
 }
 
 func (i ItemSQL) TableName() string {
@@ -52,4 +52,13 @@ type UserSQL struct {
 
 func (u UserSQL) TableName() string {
 	return "user"
+}
+
+type SystemSQL struct {
+	MaxUserLevel   int    `gorm:"column:maxUserLevel"`
+	SchoolTyepList []byte `gorm:"column:schoolTyepList"`
+}
+
+func (s SystemSQL) TableName() string {
+	return "systemSetting"
 }
