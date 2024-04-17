@@ -873,6 +873,7 @@ $(document).ready(function() {
             $('#add-user-btn').prop('disabled', readonly);
             $('.input-text').prop('readonly', readonly);
         });
+        fetchUserData();
     }
 
     function fetchUserData(page = currentUserPage){
