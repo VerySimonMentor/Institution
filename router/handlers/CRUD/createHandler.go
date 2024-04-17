@@ -129,7 +129,6 @@ func CreateSchoolHandler(ctx *gin.Context) {
 		logs.GetInstance().Logger.Errorf("CreateSchoolHandler error %s", err)
 		return
 	}
-	logs.GetInstance().Logger.Info(country)
 	country.CountryAndSchool = append(country.CountryAndSchool, schoolSQL.SchoolId)
 	countryByte, _ := json.Marshal(country)
 	redisClient.LSet(context.Background(), "country", createSchoolForm.CountryListIndex, countryByte)
@@ -255,6 +254,62 @@ func CreateItemHandler(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"msg":       "创建成功",
 		"itemId":    itemSQL.ItemId,
+		"totalPage": totalPage,
+	})
+}
+
+func CreateUserHandler(ctx *gin.Context) {
+	pageNumStr := ctx.Query("pageNum")
+	pageNum, err := strconv.Atoi(pageNumStr)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"err": "参数错误"})
+		logs.GetInstance().Logger.Errorf("CreateUserHandler error %s", err)
+		return
+	}
+	mysqlClient := mysql.GetClient()
+	userSQL := mysql.UserSQL{
+		UserAccount:  "default",
+		UserPassWord: "默认",
+		UserEmail:    "默认",
+		UserNumber:   "默认",
+		UserLevel:    0,
+		StudentCount: 0,
+	}
+
+	if err := mysqlClient.Create(&userSQL).Error; err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "创建失败"})
+		logs.GetInstance().Logger.Errorf("CreateUserHandler error %s", err)
+		return
+	}
+	if err := mysqlClient.Last(&userSQL).Error; err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "创建失败"})
+		logs.GetInstance().Logger.Errorf("CreateUserHandler error %s", err)
+		return
+	}
+
+	redisClinet := redis.GetClient()
+	user := User{
+		UserId:       userSQL.UserId,
+		UserAccount:  userSQL.UserAccount,
+		UserPassWord: userSQL.UserPassWord,
+		UserEmail:    userSQL.UserEmail,
+		UserNumber:   userSQL.UserNumber,
+		UserLevel:    userSQL.UserLevel,
+		StudentCount: userSQL.StudentCount,
+	}
+	userByte, _ := json.Marshal(user)
+	redisClinet.RPush(context.Background(), "user", userByte)
+	userNum := int(redisClinet.LLen(context.Background(), "user").Val())
+	var totalPage int
+	if userNum%pageNum == 0 {
+		totalPage = userNum / pageNum
+	} else {
+		totalPage = userNum/pageNum + 1
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"msg":       "创建成功",
+		"userId":    userSQL.UserId,
 		"totalPage": totalPage,
 	})
 }
