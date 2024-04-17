@@ -311,6 +311,61 @@ func InitItemHandler(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"results": allSchool})
 }
 
+func ShowLevelHandler(ctx *gin.Context) {
+	var showLevelForm ItemInstanceForm
+	if err := ctx.ShouldBindJSON(&showLevelForm); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"err": "参数错误"})
+		logs.GetInstance().Logger.Errorf("ShowLevelHandler error %s", err)
+		return
+	}
+
+	redisClient := redis.GetClient()
+	countryString, err := redisClient.LIndex(ctx, "country", showLevelForm.CountryListIndex).Result()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis查询失败"})
+		logs.GetInstance().Logger.Errorf("ShowLevelHandler error %s", err)
+		return
+	}
+	var country Country
+	if err := json.Unmarshal([]byte(countryString), &country); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "json转换失败"})
+		logs.GetInstance().Logger.Errorf("ShowLevelHandler error %s", err)
+		return
+	}
+
+	schoolKey := fmt.Sprintf(SchoolKey, country.CountryId)
+	schoolString, err := redisClient.LIndex(ctx, schoolKey, showLevelForm.SchoolListIndex).Result()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis查询失败"})
+		logs.GetInstance().Logger.Errorf("ShowLevelHandler error %s", err)
+		return
+	}
+	var school School
+	if err := json.Unmarshal([]byte(schoolString), &school); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "json转换失败"})
+		logs.GetInstance().Logger.Errorf("ShowLevelHandler error %s", err)
+		return
+	}
+
+	itemKey := fmt.Sprintf(ItemKey, country.CountryId, school.SchoolId)
+	itemString, err := redisClient.LIndex(ctx, itemKey, showLevelForm.ItemListIndex).Result()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis查询失败"})
+		logs.GetInstance().Logger.Errorf("ShowLevelHandler error %s", err)
+		return
+	}
+	var item Item
+	if err := json.Unmarshal([]byte(itemString), &item); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "json转换失败"})
+		logs.GetInstance().Logger.Errorf("ShowLevelHandler error %s", err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"item": item,
+	})
+}
+
 func ShowUserHandler(ctx *gin.Context) {
 	var pageShow PageShow
 	if err := ctx.ShouldBindJSON(&pageShow); err != nil {
@@ -339,5 +394,13 @@ func ShowUserHandler(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"results":   userList[start:end],
 		"totalPage": totalPage,
+	})
+}
+
+func ShowSystemHandler(ctx *gin.Context) {
+	system := getSystemInRedis(ctx)
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"system": system,
 	})
 }
