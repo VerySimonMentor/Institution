@@ -283,7 +283,12 @@ func DeleteSystemHandler(ctx *gin.Context) {
 
 	go func(system System) {
 		mysqlClient := mysql.GetClient()
-		err := mysqlClient.Model(&mysql.SystemSQL{}).Updates(system).Error
+		schoolTypeList, _ := json.Marshal(system.SchoolTyepList)
+		systemSQL := mysql.SystemSQL{
+			MaxUserLevel:   system.MaxUserLevel,
+			SchoolTyepList: schoolTypeList,
+		}
+		err := mysqlClient.Model(&mysql.SystemSQL{}).Updates(systemSQL).Error
 		if err != nil {
 			logs.GetInstance().Logger.Errorf("DeleteSystemHandler error %s", err)
 		}

@@ -99,6 +99,7 @@ $(document).ready(function() {
                     })(listIndex));
                     row.find('.btn-province').off('click').click((function(countryId, listIndex, currentPage) {
                         return function() {
+                            disableSidebarButton();
                             var data = {
                                 countryId: countryId,
                                 listIndex: listIndex - 1,
@@ -118,6 +119,7 @@ $(document).ready(function() {
                                     $('#english-name-input').val(data.country.countryEngName);
                                     $('#save-province-btn').off('click').click((function(countryId, listIndex){
                                         return function(){
+                                            enableSidebarButton();
                                             var province = getProvinceData();
                                             var countryChiName = $('#chinese-name-input').val();
                                             var countryEngName = $('#english-name-input').val();
@@ -245,12 +247,6 @@ $(document).ready(function() {
             default:
                 break;
         }
-        // if (buttonId === 'manage-country') {
-        //     fetchCountryData();
-        //     initCountry();
-        // } else if (buttonId === 'manage-school') {
-        //     initSchool();
-        // }
     });
 
     function fetchProvinceData(province) {
@@ -297,6 +293,7 @@ $(document).ready(function() {
     })
 
     $('#cancel-province-btn').click(function(){
+        enableSidebarButton();
         $('#province-model').css('display', 'none');
         $("#manage-country-content").css('pointer-events', 'auto');
         $("#manage-country-content").css('opacity', '1');
@@ -659,6 +656,68 @@ $(document).ready(function() {
                     })(item[i].itemId, listIndex, 'itemRemark'));
 
                     row.find('input.input-text').prop('readonly', readonly);
+
+                    row.find('.btn-item-edit').off('click').click((function(countryListIndex, schoolListIndex, itemListIndex, currentItemPage) {
+                        return function() {
+                            disableSidebarButton(); // 禁用侧边栏按钮
+                            var data = {
+                                countryListIndex: countryListIndex - 1,
+                                schoolListIndex: schoolListIndex - 1,
+                                itemListIndex: itemListIndex - 1
+                            }
+                            $.ajax({
+                                url: '/item/changeProportion/show',
+                                type: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                data: JSON.stringify(data),
+                                success: function(response) {
+                                    $('#item-model').css('display', 'block');
+                                    $("#manage-item-content").css('pointer-events', 'none');
+                                    $("#manage-item-content").css('opacity', '0.5');
+                                    $('#item-name-input').val(response.item.itemName);
+                                    $('#level-description-input').val(response.item.levelDescription);
+                                    $('#item-remark-input').val(response.item.itemRemark);
+                                    $('#save-item-btn').off('click').click((function(countryListIndex, schoolListIndex, itemListIndex, itemId){
+                                        return function(){
+                                            enableSidebarButton(); // 启用侧边栏按钮
+                                            var levelRate = getLevelRateData();
+                                            var itemName = $('#item-name-input').val();
+                                            var levelDescription = $('#level-description-input').val();
+                                            var itemRemark = $('#item-remark-input').val();
+                                            var data = {
+                                                countryListIndex: countryListIndex-1,
+                                                schoolListIndex: schoolListIndex-1,
+                                                itemListIndex: itemListIndex-1,
+                                                itemId: itemId,
+                                                itemName: itemName,
+                                                levelDescription: levelDescription,
+                                                itemRemark: itemRemark,
+                                                levelRate: levelRate
+                                            }
+                                            $.ajax({
+                                                url: '/item/changeProportion/save',
+                                                type: 'POST',
+                                                headers: {
+                                                    'Content-Type': 'application/json'
+                                                },
+                                                data: JSON.stringify(data),
+                                                success: function(data) {
+                                                    $('#item-model').css('display', 'none');
+                                                    $("#manage-item-content").css('pointer-events', 'auto');
+                                                    $("#manage-item-content").css('opacity', '1');
+                                                    fetchItemData(schoolListIndex, currentItemPage);
+                                                }
+                                            });
+                                        }
+                                    })(countryListIndex, schoolListIndex, itemListIndex, response.item.itemId));
+                                    fetchItemWindowData(response.item.levelRate);
+                                }
+                            });
+                        }
+                    })(countryListIndex, schoolListIndex, listIndex, currentItemPage));
+
                     row.find('.btn-item-delete').click((function(itemId, listIndex) {
                         return function() {
                             alert('确定删除吗？');
@@ -754,6 +813,55 @@ $(document).ready(function() {
         });
     }
 
+    function fetchItemWindowData(levelRate){
+        var table = $('#level-table tbody');
+        table.empty();
+        for (let i=0; i<levelRate.length; i++) {
+            var levelId = $(`<input type="text" class="input-text" value="${levelRate[i].levelId}" />`);
+            var rate = $(`<input type="text" class="input-text" value="${levelRate[i].levelRate}" />`);
+            var row = $(
+                `<tr>
+                    <td>${levelId.prop('outerHTML')}</td>
+                    <td>${rate.prop('outerHTML')}</td>
+                    <td>
+                        <a href=# class="btn btn-level-delete">删除</a>
+                    </td>
+                </tr>`
+            );
+            row.find('.btn-level-delete').off('click').click((function(i){
+                return function() {
+                    var levelRate = getLevelRateData();
+                    levelRate.splice(i, 1);
+                    fetchItemWindowData(levelRate);
+                }
+            })(i));
+            table.append(row);
+        }
+    }
+
+    function getLevelRateData(){
+        var levelRate = [];
+        $('#level-table tbody tr').each(function() {
+            var levelId = parseInt($(this).find('input.input-text').eq(0).val());
+            var rate = parseInt($(this).find('input.input-text').eq(1).val());
+            levelRate.push({levelId: levelId, levelRate: rate});
+        });
+        return levelRate;
+    }
+
+    $('#add-level-btn').click(function(){
+        var levelRate = getLevelRateData();
+        levelRate.push({levelId: 0, levelRate: 0});
+        fetchItemWindowData(levelRate);
+    })
+
+    $('#cancel-item-btn').click(function(){
+        enableSidebarButton(); // 启用侧边栏按钮
+        $('#item-model').css('display', 'none');
+        $("#manage-item-content").css('pointer-events', 'auto');
+        $("#manage-item-content").css('opacity', '1');
+    });
+
 
 
     function initUser(){
@@ -834,6 +942,14 @@ $(document).ready(function() {
 
             }
         });
+    }
+
+    function disableSidebarButton(){
+        $(".button-list-button").prop("disabled", true);
+    }
+
+    function enableSidebarButton(){
+        $(".button-list-button").prop("disabled", false);
     }
 
     fetchCountryData();

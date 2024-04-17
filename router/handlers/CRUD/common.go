@@ -33,11 +33,11 @@ type School struct {
 }
 
 type Item struct {
-	ItemId          int     `json:"itemId"`
-	ItemName        string  `json:"itemName"`
-	LevelDescrption string  `json:"levelDescrption"`
-	LevelRate       []Level `json:"levelRate"`
-	ItemRemark      string  `json:"itemRemark"`
+	ItemId           int     `json:"itemId"`
+	ItemName         string  `json:"itemName"`
+	LevelDescription string  `json:"levelDescription"`
+	LevelRate        []Level `json:"levelRate"`
+	ItemRemark       string  `json:"itemRemark"`
 }
 
 type Level struct {

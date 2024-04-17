@@ -291,7 +291,7 @@ func UpdateItemHandler(ctx *gin.Context) {
 	case "itemName":
 		item.ItemName = updateValue
 	case "levelDescrption":
-		item.LevelDescrption = updateValue
+		item.LevelDescription = updateValue
 	case "itemRemark":
 		item.ItemRemark = updateValue
 	}
@@ -372,7 +372,7 @@ func UpdateLevelHandler(ctx *gin.Context) {
 	}
 
 	item.ItemName = updateLevelForm.ItemName
-	item.LevelDescrption = updateLevelForm.LevelDescrption
+	item.LevelDescription = updateLevelForm.LevelDescription
 	item.LevelRate = updateLevelForm.LevelRate
 	item.ItemRemark = updateLevelForm.ItemRemark
 	itemByte, _ := json.Marshal(item)
@@ -385,7 +385,15 @@ func UpdateLevelHandler(ctx *gin.Context) {
 
 	go func(item Item) {
 		mysqlClient := mysql.GetClient()
-		err := mysqlClient.Model(&mysql.ItemSQL{}).Where("itemId = ?", item.ItemId).Updates(item).Error
+		levelRate, _ := json.Marshal(item.LevelRate)
+		itemSQL := mysql.ItemSQL{
+			ItemId:           item.ItemId,
+			ItemName:         item.ItemName,
+			LevelDescription: item.LevelDescription,
+			LevelRate:        levelRate,
+			ItemRemark:       item.ItemRemark,
+		}
+		err := mysqlClient.Model(&mysql.ItemSQL{}).Where("itemId = ?", item.ItemId).Updates(itemSQL).Error
 		if err != nil {
 			logs.GetInstance().Logger.Errorf("UpdateLevelHandler error %s", err)
 		}
@@ -495,7 +503,12 @@ func UpdateSystemHandler(ctx *gin.Context) {
 
 	go func(system System) {
 		mysqlClient := mysql.GetClient()
-		err := mysqlClient.Model(&mysql.SystemSQL{}).Updates(system).Error
+		schoolTypeList, _ := json.Marshal(system.SchoolTyepList)
+		systemSQL := mysql.SystemSQL{
+			MaxUserLevel:   system.MaxUserLevel,
+			SchoolTyepList: schoolTypeList,
+		}
+		err := mysqlClient.Model(&mysql.SystemSQL{}).Updates(systemSQL).Error
 		if err != nil {
 			logs.GetInstance().Logger.Errorf("UpdateSystemHandler error %s", err)
 		}
