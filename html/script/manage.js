@@ -63,7 +63,7 @@ $(document).ready(function() {
                     row.find('input.input-text').prop('readonly', readonly);
                     row.find('.btn-delete').click((function(countryId, listIndex) {
                         return function() {
-                            alert('确定删除吗？')
+                            alert('确定删除吗？');
                             var data = {
                                 countryId: countryId,
                                 listIndex: listIndex - 1,
@@ -1023,7 +1023,100 @@ $(document).ready(function() {
     }
 
     function initSystemSet(){
-        console.log("initSystemSet");
+        $('#add-type-btn').prop('disabled', true);
+        var typeSwitch = $('#system-switch input[type="checkbox"]');
+        typeSwitch.prop('checked', false);
+        typeSwitch.change(function() {
+            var readonly = !$(this).prop('checked');
+            $('#add-type-btn').prop('disable', readonly);
+            $('.input-text').prop('readonly', readonly);
+        });
+        fetchSystemData();
+    }
+
+    function fetchSystemData() {
+        $.get("/system/show", function(response) {
+            var system = response.system;
+            var maxUserLevelText = $('#user-level-input');
+            maxUserLevelText.val(system.maxUserLevel);
+            maxUserLevelText.change((function(listIndex, field) {
+                return function() {
+                    var value = $(this).val();
+                    systemTextChange(listIndex, field, parseInt(value));
+                }
+            })(-1, 'maxUserLevel'));
+
+            var table = $('#system-table tbody');
+            table.empty();
+            var systemSwitch = $('#system-switch  input[type="checkbox"]');
+            var readonly = !systemSwitch.prop('checked');
+
+            for (let i = 0; i < system.schoolTypeList.length; i++) {
+                var listIndex = i + 1;
+                var schoolTypeNameText =  $(`<input type="text" class="input-text" value="${system.schoolTypeList[i].schoolTypeName}" readonly />`);
+                var row = $(
+                    `<tr>
+                        <td>${listIndex}</td>
+                        <td>${schoolTypeNameText.prop('outerHTML')}</td>
+                        <td>
+                            <a href=# class="btn btn-delete">删除</a>
+                    </tr>`
+                );
+                table.append(row);
+                row.find('input.input-text').eq(0).change((function(listIndex, field) {
+                    return function() {
+                        var value = $(this).val();
+                        systemTextChange(listIndex, field, value);
+                    }
+                })(listIndex, 'schoolTypeList'));
+                row.find('input.input-text').prop('readonly', readonly);
+                row.find('.btn-delete').off('click').click((function(listIndex) {
+                    return function() {
+                        alert('确定删除吗？');
+                        $.ajax({
+                            url: "/system/delete",
+                            type: "DELETE",
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            data: JSON.stringify({listIndex: listIndex}),
+                            statusCode: {
+                                200: function(response) {
+                                    fetchSystemData();
+                                },
+                                400: function(response) {
+                                    alert(response.results);
+                                }
+                            }
+                        });
+                    }
+                })(listIndex));
+            }
+        });
+    }
+
+    $("#add-system-btn").click(function() {
+        $.get("/system/create", {pageNum: pageNum}, function(response) {
+            fetchSystemData();
+        });
+    });
+
+    function systemTextChange(listIndex, field, value) {
+        $.ajax({
+            url: '/changeSystem',
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            data: JSON.stringify({
+                listIndex: listIndex - 1,
+                updateField, field,
+                updateValue: value
+            }),
+            success: function(response) {
+
+            }
+        });
     }
 
     function disableSidebarButton(){
