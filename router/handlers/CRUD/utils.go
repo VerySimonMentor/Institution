@@ -22,6 +22,12 @@ type SchoolInstanceForm struct {
 	SchoolListIndex  int64 `json:"schoolListIndex"`
 }
 
+type ItemInstanceForm struct {
+	CountryListIndex int64 `json:"countryListIndex"`
+	SchoolListIndex  int64 `json:"schoolListIndex"`
+	ItemListIndex    int64 `json:"itemListIndex"`
+}
+
 func pageRange(page, pageNum, countryNum int) (int, int) {
 	start := (page - 1) * pageNum
 	end := start + pageNum

@@ -3,6 +3,8 @@ package CRUD
 const (
 	SchoolKey = "%d-school"
 	ItemKey   = "%d-%d-item"
+
+	DeleteTypeResp = "国家:%s的学校:%s正在使用该类型,请先更改再删除!"
 )
 
 type Country struct {

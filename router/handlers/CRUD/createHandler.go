@@ -269,9 +269,9 @@ func CreateUserHandler(ctx *gin.Context) {
 	mysqlClient := mysql.GetClient()
 	userSQL := mysql.UserSQL{
 		UserAccount:  "default",
-		UserPassWord: "默认",
-		UserEmail:    "默认",
-		UserNumber:   "默认",
+		UserPassWord: "",
+		UserEmail:    "",
+		UserNumber:   "00000000000",
 		UserLevel:    0,
 		StudentCount: 0,
 	}
@@ -312,4 +312,26 @@ func CreateUserHandler(ctx *gin.Context) {
 		"userId":    userSQL.UserId,
 		"totalPage": totalPage,
 	})
+}
+
+func CreateSystemHandler(ctx *gin.Context) {
+	system := getSystemInRedis(ctx)
+	maxSchoolTypeId := system.SchoolTyepList[len(system.SchoolTyepList)-1].SchoolTypeId
+	system.SchoolTyepList = append(system.SchoolTyepList, SchoolType{
+		SchoolTypeId:   maxSchoolTypeId + 1,
+		SchoolTypeName: "默认",
+	})
+	redisClient := redis.GetClient()
+	systemByte, _ := json.Marshal(system)
+	redisClient.Set(context.Background(), "system", systemByte, 0)
+
+	go func(system System) {
+		mysqlClient := mysql.GetClient()
+		err := mysqlClient.Model(&mysql.SystemSQL{}).Updates(system).Error
+		if err != nil {
+			logs.GetInstance().Logger.Errorf("CreateSystemHandler error %s", err)
+		}
+	}(system)
+
+	ctx.JSON(http.StatusOK, gin.H{"msg": "创建成功"})
 }

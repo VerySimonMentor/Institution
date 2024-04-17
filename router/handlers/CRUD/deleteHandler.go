@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -128,14 +129,8 @@ func DeleteSchoolHandler(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"msg": "删除成功"})
 }
 
-type DeleteItemForm struct {
-	CountryListIndex int64 `json:"countryListIndex"`
-	SchoolListIndex  int64 `json:"schoolListIndex"`
-	ItemListIndex    int64 `json:"itemListIndex"`
-}
-
 func DeleteItemHandler(ctx *gin.Context) {
-	var deleteItemForm DeleteItemForm
+	var deleteItemForm ItemInstanceForm
 	if err := ctx.ShouldBindJSON(&deleteItemForm); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"err": "参数错误"})
 		logs.GetInstance().Logger.Errorf("DeleleItemHandler error %s", err)
@@ -211,6 +206,88 @@ func DeleteItemHandler(ctx *gin.Context) {
 			logs.GetInstance().Logger.Errorf("DeleleItemHandler error %s", err)
 		}
 	}(deleteItem.ItemId, school)
+
+	ctx.JSON(http.StatusOK, gin.H{"msg": "删除成功"})
+}
+
+func DeleteUserHandler(ctx *gin.Context) {
+	listIndexStr := ctx.Query("listIndex")
+	listIndex, _ := strconv.ParseInt(listIndexStr, 10, 64)
+
+	redisClient := redis.GetClient()
+	userString, err := redisClient.LIndex(context.Background(), "user", listIndex).Result()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis查询失败"})
+		logs.GetInstance().Logger.Errorf("DeleteUserHandler error %s", err)
+		return
+	}
+	var user User
+	if err := json.Unmarshal([]byte(userString), &user); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "json转换失败"})
+		logs.GetInstance().Logger.Errorf("DeleteUserHandler error %s", err)
+		return
+	}
+
+	_, err = redisClient.LRem(context.Background(), "user", 0, userString).Result()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis删除失败"})
+		logs.GetInstance().Logger.Errorf("DeleteUserHandler error %s", err)
+		return
+	}
+
+	go func(userId int) {
+		mysqlClient := mysql.GetClient()
+		err := mysqlClient.Where("userId = ?", userId).Delete(&mysql.UserSQL{}).Error
+		if err != nil {
+			logs.GetInstance().Logger.Errorf("DeleteUserHandler error %s", err)
+		}
+	}(user.UserId)
+
+	ctx.JSON(http.StatusOK, gin.H{"msg": "删除成功"})
+}
+
+func DeleteSystemHandler(ctx *gin.Context) {
+	listIndexStr := ctx.Query("listIndex")
+	listIndex, _ := strconv.ParseInt(listIndexStr, 10, 64)
+
+	usedSchool := make([]string, 0)
+	system := getSystemInRedis(ctx)
+	currentSchoolTypeId := system.SchoolTyepList[listIndex].SchoolTypeId
+	country := getCountryInRedis(ctx)
+	for _, c := range country {
+		schoolKey := fmt.Sprintf(SchoolKey, c.CountryId)
+		school := getSchoolInRedis(ctx, schoolKey, c.CountryAndSchool)
+		for _, s := range school {
+			if s.SchoolType == currentSchoolTypeId {
+				usedSchool = append(usedSchool, fmt.Sprintf(DeleteTypeResp, c.CountryChiName, s.SchoolChiName))
+			}
+		}
+	}
+
+	if len(usedSchool) > 0 {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"err":     "该类型正在使用中",
+			"results": usedSchool,
+		})
+		return
+	}
+	system.SchoolTyepList = append(system.SchoolTyepList[:listIndex], system.SchoolTyepList[listIndex+1:]...)
+	redisClient := redis.GetClient()
+	systemString, _ := json.Marshal(system)
+	_, err := redisClient.Set(context.Background(), "system", systemString, 0).Result()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis修改失败"})
+		logs.GetInstance().Logger.Errorf("DeleteSystemHandler error %s", err)
+		return
+	}
+
+	go func(system System) {
+		mysqlClient := mysql.GetClient()
+		err := mysqlClient.Model(&mysql.SystemSQL{}).Updates(system).Error
+		if err != nil {
+			logs.GetInstance().Logger.Errorf("DeleteSystemHandler error %s", err)
+		}
+	}(system)
 
 	ctx.JSON(http.StatusOK, gin.H{"msg": "删除成功"})
 }
