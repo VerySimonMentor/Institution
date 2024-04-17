@@ -97,7 +97,7 @@ $(document).ready(function() {
                             initSchool(listIndex);
                         }
                     })(listIndex));
-                    row.find('.btn-province').click((function(countryId, listIndex, currentPage) {
+                    row.find('.btn-province').off('click').click((function(countryId, listIndex, currentPage) {
                         return function() {
                             var data = {
                                 countryId: countryId,
@@ -116,7 +116,7 @@ $(document).ready(function() {
                                     $("#manage-country-content").css('opacity', '0.5');
                                     $('#chinese-name-input').val(data.country.countryChiName);
                                     $('#english-name-input').val(data.country.countryEngName);
-                                    $('#save-province-btn').off('click').click((function(){
+                                    $('#save-province-btn').off('click').click((function(countryId, listIndex){
                                         return function(){
                                             var province = getProvinceData();
                                             var countryChiName = $('#chinese-name-input').val();
@@ -269,13 +269,13 @@ $(document).ready(function() {
                     </td>
                 </tr>`
             );
-            row.find('.btn-province-delete').click((function(province, i){
+            row.find('.btn-province-delete').off('click').click((function(i){
                 return function() {
-                    province = getProvinceData();
+                    var province = getProvinceData();
                     province.splice(i, 1);
                     fetchProvinceData(province);
                 }
-            })(province, i));
+            })(i));
             table.append(row);
         }
     }
@@ -291,7 +291,7 @@ $(document).ready(function() {
     }
 
     $('#add-province-btn').click(function(){
-        province = getProvinceData();
+        var province = getProvinceData();
         province.push({chiName: "新省份", engName: "New Province"});
         fetchProvinceData(province);
     })
@@ -564,8 +564,7 @@ $(document).ready(function() {
                     countrySelect.append(option);
                 }
                 countrySelect.off('change').change(function() {
-                    // var listIndex = $(this).val();
-                    // fetchSchoolData(listIndex);
+                    $('#item-table tbody').empty();
                     fetchSchoolList(schoolListIndex);
                 });
                 if(countrylistIndex != 0){

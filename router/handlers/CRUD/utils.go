@@ -363,3 +363,83 @@ func checkSystemInRedis(ctx *gin.Context) bool {
 
 	return true
 }
+
+func getUserInRedis(ctx *gin.Context) []User {
+	redisClient := redis.GetClient()
+	mysqlClient := mysql.GetClient()
+
+	if !checkUserInRedis(ctx) {
+		userListSQL := make([]mysql.UserSQL, 0)
+		if err := mysqlClient.Model(&mysql.UserSQL{}).Find(&userListSQL).Error; err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"err": "查询失败"})
+			logs.GetInstance().Logger.Errorf("ShowUserHandler error %s", err)
+			return nil
+		}
+		if len(userListSQL) == 0 {
+			return make([]User, 0)
+		}
+		userList := make([]User, len(userListSQL))
+		for i, user := range userListSQL {
+			userList[i] = User{
+				UserId:       user.UserId,
+				UserAccount:  user.UserAccount,
+				UserPassWord: user.UserPassWord,
+				UserEmail:    user.UserEmail,
+				UserNumber:   user.UserNumber,
+				UserLevel:    user.UserLevel,
+				StudentCount: user.StudentCount,
+			}
+		}
+		userJSON := make([][]byte, len(userList))
+		for i, user := range userList {
+			var err error
+			userJSON[i] = make([]byte, 0)
+			userJSON[i], err = json.Marshal(user)
+			if err != nil {
+				ctx.JSON(http.StatusInternalServerError, gin.H{"err": "json转换失败"})
+				logs.GetInstance().Logger.Errorf("ShowUserHandler error %s", err)
+				return nil
+			}
+			if err = redisClient.RPush(context.Background(), "user", userJSON[i]).Err(); err != nil {
+				ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis存储失败"})
+				logs.GetInstance().Logger.Errorf("ShowUserHandler error %s", err)
+				return nil
+			}
+		}
+	}
+
+	userString, err := redisClient.LRange(context.Background(), "user", 0, -1).Result()
+	userList := make([]User, 0)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis查询失败"})
+		logs.GetInstance().Logger.Errorf("ShowUserHandler error %s", err)
+		return nil
+	} else {
+		for _, user := range userString {
+			var userStruct User
+			if err := json.Unmarshal([]byte(user), &userStruct); err != nil {
+				ctx.JSON(http.StatusInternalServerError, gin.H{"err": "json转换失败"})
+				logs.GetInstance().Logger.Errorf("ShowUserHandler error %s", err)
+				return nil
+			}
+			userList = append(userList, userStruct)
+		}
+	}
+
+	return userList
+}
+
+func checkUserInRedis(ctx *gin.Context) bool {
+	redisClient := redis.GetClient()
+	keytype, err := redisClient.Type(context.Background(), "user").Result()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis查询失败"})
+		logs.GetInstance().Logger.Errorf("ShowUserHandler error %s", err)
+		return false
+	}
+	if keytype != "list" {
+		return false
+	}
+
+	return true
+}

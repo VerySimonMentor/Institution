@@ -19,12 +19,8 @@ create table if not exists school(
     schoolEngName varchar(255) not null,
     schoolChiName varchar(255) not null,
     schoolAbbreviation varchar(255),
-<<<<<<< HEAD
     -- schoolType int not null,
     schoolType varchar(255) not null,
-=======
-    schoolType int not null,
->>>>>>> e4b4b3c36f9d203db16f5fa887d7fafa75437d5e
     province varchar(255) not null,
     officialWebLink varchar(255) not null,
     schoolRemark varchar(4095),

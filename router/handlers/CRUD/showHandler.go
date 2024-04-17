@@ -211,6 +211,13 @@ func ShowItemHandler(ctx *gin.Context) {
 		logs.GetInstance().Logger.Errorf("ShowItemHandler error %s", err)
 		return
 	}
+	if showItemForm.CountryListIndex < 0 || showItemForm.SchoolListIndex < 0 {
+		ctx.JSON(http.StatusOK, gin.H{
+			"results":   []ItemResp{},
+			"totalPage": 0,
+		})
+		return
+	}
 
 	redisClient := redis.GetClient()
 	countryStr, err := redisClient.LIndex(ctx, "country", showItemForm.CountryListIndex).Result()
@@ -302,4 +309,35 @@ func InitItemHandler(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"results": allSchool})
+}
+
+func ShowUserHandler(ctx *gin.Context) {
+	var pageShow PageShow
+	if err := ctx.ShouldBindJSON(&pageShow); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"err": "参数错误"})
+		logs.GetInstance().Logger.Errorf("ShowUserHandler error %s", err)
+		return
+	}
+
+	userList := getUserInRedis(ctx)
+	if userList == nil {
+		return
+	}
+	if len(userList) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{"results": []User{}})
+		return
+	}
+
+	start, end := pageRange(pageShow.Page, pageShow.PageNum, len(userList))
+	var totalPage int
+	if len(userList)%pageShow.PageNum == 0 {
+		totalPage = len(userList) / pageShow.PageNum
+	} else {
+		totalPage = len(userList)/pageShow.PageNum + 1
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"results":   userList[start:end],
+		"totalPage": totalPage,
+	})
 }
