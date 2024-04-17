@@ -197,11 +197,11 @@ func CreateItemHandler(ctx *gin.Context) {
 	}
 
 	itemByte, _ := json.Marshal(Item{
-		ItemId:          itemSQL.ItemId,
-		ItemName:        itemSQL.ItemName,
-		LevelDescrption: itemSQL.LevelDescription,
-		LevelRate:       make([]Level, 0),
-		ItemRemark:      itemSQL.ItemRemark,
+		ItemId:           itemSQL.ItemId,
+		ItemName:         itemSQL.ItemName,
+		LevelDescription: itemSQL.LevelDescription,
+		LevelRate:        make([]Level, 0),
+		ItemRemark:       itemSQL.ItemRemark,
 	})
 	countryString, err := redisClient.LIndex(context.Background(), "country", createItemForm.CountryListIndex).Result()
 	if err != nil {
