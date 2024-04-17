@@ -3,6 +3,8 @@ package CRUD
 const (
 	SchoolKey = "%d-school"
 	ItemKey   = "%d-%d-item"
+
+	DeleteTypeResp = "国家:%s的学校:%s正在使用该类型,请先更改再删除!"
 )
 
 type Country struct {
@@ -31,11 +33,11 @@ type School struct {
 }
 
 type Item struct {
-	ItemId          int     `json:"itemId"`
-	ItemName        string  `json:"itemName"`
-	LevelDescrption string  `json:"levelDescrption"`
-	LevelRate       []Level `json:"levelRate"`
-	ItemRemark      string  `json:"itemRemark"`
+	ItemId           int     `json:"itemId"`
+	ItemName         string  `json:"itemName"`
+	LevelDescription string  `json:"levelDescription"`
+	LevelRate        []Level `json:"levelRate"`
+	ItemRemark       string  `json:"itemRemark"`
 }
 
 type Level struct {

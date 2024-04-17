@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UpdateCountryForm struct {
@@ -66,7 +67,7 @@ func UpdateCountryHandler(ctx *gin.Context) {
 
 	go func(updateCountryForm UpdateCountryForm) {
 		mysqlClient := mysql.GetClient()
-		err := mysqlClient.Model(&mysql.CountrySQL{}).Where("countryId = ?", updateCountryForm.CountryId).UpdateColumn(updateCountryForm.UpdateField, updateCountryForm.UpdateValue.(string)).Error
+		err := mysqlClient.Model(&mysql.CountrySQL{}).Where("countryId = ?", updateCountryForm.CountryId).UpdateColumn(updateCountryForm.UpdateField, updateCountryForm.UpdateValue).Error
 		if err != nil {
 			logs.GetInstance().Logger.Errorf("UpdateCountryHandler error %s", err)
 		}
@@ -217,8 +218,7 @@ func UpdateSchoolHandler(ctx *gin.Context) {
 
 	go func(updateSchoolForm UpdateSchoolForm) {
 		mysqlClient := mysql.GetClient()
-		updateValue := updateSchoolForm.UpdateValue.(string)
-		err := mysqlClient.Model(&mysql.SchoolSQL{}).Where("schoolId = ?", updateSchoolForm.SchoolId).UpdateColumn(updateSchoolForm.UpdateField, updateValue).Error
+		err := mysqlClient.Model(&mysql.SchoolSQL{}).Where("schoolId = ?", updateSchoolForm.SchoolId).UpdateColumn(updateSchoolForm.UpdateField, updateSchoolForm.UpdateValue).Error
 		if err != nil {
 			logs.GetInstance().Logger.Errorf("UpdateSchoolHandler error %s", err)
 		}
@@ -291,7 +291,7 @@ func UpdateItemHandler(ctx *gin.Context) {
 	case "itemName":
 		item.ItemName = updateValue
 	case "levelDescrption":
-		item.LevelDescrption = updateValue
+		item.LevelDescription = updateValue
 	case "itemRemark":
 		item.ItemRemark = updateValue
 	}
@@ -305,12 +305,214 @@ func UpdateItemHandler(ctx *gin.Context) {
 
 	go func(updateItemForm UpdateItemForm) {
 		mysqlClient := mysql.GetClient()
-		updateValue := updateItemForm.UpdateValue.(string)
-		err := mysqlClient.Model(&mysql.ItemSQL{}).Where("itemId = ?", updateItemForm.ItemId).UpdateColumn(updateItemForm.UpdateField, updateValue).Error
+		err := mysqlClient.Model(&mysql.ItemSQL{}).Where("itemId = ?", updateItemForm.ItemId).UpdateColumn(updateItemForm.UpdateField, updateItemForm.UpdateValue).Error
 		if err != nil {
 			logs.GetInstance().Logger.Errorf("UpdateItemHandler error %s", err)
 		}
 	}(updateItemForm)
+
+	ctx.JSON(http.StatusOK, gin.H{"msg": "更新成功"})
+}
+
+type UpdateLevelForm struct {
+	Item
+	CountryListIndex int64 `json:"countryListIndex"`
+	SchoolListIndex  int64 `json:"schoolListIndex"`
+	ItemListIndex    int64 `json:"itemListIndex"`
+}
+
+func UpdateLevelHandler(ctx *gin.Context) {
+	var updateLevelForm UpdateLevelForm
+	if err := ctx.ShouldBindJSON(&updateLevelForm); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"err": "参数错误"})
+		logs.GetInstance().Logger.Errorf("UpdateLevelHandler error %s", err)
+		return
+	}
+
+	redisClient := redis.GetClient()
+	countryString, err := redisClient.LIndex(ctx, "country", updateLevelForm.CountryListIndex).Result()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis查询失败"})
+		logs.GetInstance().Logger.Errorf("UpdateLevelHandler error %s", err)
+		return
+	}
+	var country Country
+	if err := json.Unmarshal([]byte(countryString), &country); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "json转换失败"})
+		logs.GetInstance().Logger.Errorf("UpdateLevelHandler error %s", err)
+		return
+	}
+
+	schoolKey := fmt.Sprintf(SchoolKey, country.CountryId)
+	schoolString, err := redisClient.LIndex(ctx, schoolKey, updateLevelForm.SchoolListIndex).Result()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis查询失败"})
+		logs.GetInstance().Logger.Errorf("UpdateLevelHandler error %s", err)
+		return
+	}
+	var school School
+	if err := json.Unmarshal([]byte(schoolString), &school); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "json转换失败"})
+		logs.GetInstance().Logger.Errorf("UpdateLevelHandler error %s", err)
+		return
+	}
+
+	itemKey := fmt.Sprintf(ItemKey, country.CountryId, school.SchoolId)
+	itemString, err := redisClient.LIndex(ctx, itemKey, updateLevelForm.ItemListIndex).Result()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis查询失败"})
+		logs.GetInstance().Logger.Errorf("UpdateLevelHandler error %s", err)
+		return
+	}
+	var item Item
+	if err := json.Unmarshal([]byte(itemString), &item); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "json转换失败"})
+		logs.GetInstance().Logger.Errorf("UpdateLevelHandler error %s", err)
+		return
+	}
+
+	item.ItemName = updateLevelForm.ItemName
+	item.LevelDescription = updateLevelForm.LevelDescription
+	item.LevelRate = updateLevelForm.LevelRate
+	item.ItemRemark = updateLevelForm.ItemRemark
+	itemByte, _ := json.Marshal(item)
+	err = redisClient.LSet(ctx, itemKey, updateLevelForm.ItemListIndex, itemByte).Err()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis更新失败"})
+		logs.GetInstance().Logger.Errorf("UpdateLevelHandler error %s", err)
+		return
+	}
+
+	go func(item Item) {
+		mysqlClient := mysql.GetClient()
+		levelRate, _ := json.Marshal(item.LevelRate)
+		itemSQL := mysql.ItemSQL{
+			ItemId:           item.ItemId,
+			ItemName:         item.ItemName,
+			LevelDescription: item.LevelDescription,
+			LevelRate:        levelRate,
+			ItemRemark:       item.ItemRemark,
+		}
+		err := mysqlClient.Model(&mysql.ItemSQL{}).Where("itemId = ?", item.ItemId).Updates(itemSQL).Error
+		if err != nil {
+			logs.GetInstance().Logger.Errorf("UpdateLevelHandler error %s", err)
+		}
+	}(item)
+
+	ctx.JSON(http.StatusOK, gin.H{"msg": "更新成功"})
+}
+
+type UpdateUserForm struct {
+	ListIndex   int64       `json:"listIndex"`
+	UserId      int         `json:"userId"`
+	UpdateField string      `json:"updateField"`
+	UpdateValue interface{} `json:"updateValue"`
+}
+
+func UpdateUserHandler(ctx *gin.Context) {
+	var updateUserForm UpdateUserForm
+	if err := ctx.ShouldBindJSON(&updateUserForm); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"err": "参数错误"})
+		logs.GetInstance().Logger.Errorf("UpdateUserHandler error %s", err)
+		return
+	}
+
+	redisClient := redis.GetClient()
+	userString, err := redisClient.LIndex(ctx, "user", updateUserForm.ListIndex).Result()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis查询失败"})
+		logs.GetInstance().Logger.Errorf("UpdateUserHandler error %s", err)
+		return
+	}
+	var user User
+	if err := json.Unmarshal([]byte(userString), &user); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "json转换失败"})
+		logs.GetInstance().Logger.Errorf("UpdateUserHandler error %s", err)
+		return
+	}
+
+	updateValue := updateUserForm.UpdateValue.(string)
+	switch updateUserForm.UpdateField {
+	case "userAccount":
+		user.UserAccount = updateValue
+	case "userPassWord":
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(updateValue), bcrypt.DefaultCost)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"err": "密码加密失败"})
+			logs.GetInstance().Logger.Errorf("UpdateUserHandler error %s", err)
+			return
+		}
+		user.UserPassWord = string(hashedPassword)
+	case "userEmail":
+		user.UserEmail = updateValue
+	case "userNumber":
+		user.UserNumber = updateValue
+	case "userLevel":
+		user.UserLevel = updateUserForm.UpdateValue.(int)
+	case "studentCount":
+		user.StudentCount = updateUserForm.UpdateValue.(int)
+	}
+	userByte, _ := json.Marshal(user)
+	err = redisClient.LSet(ctx, "user", updateUserForm.ListIndex, userByte).Err()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis更新失败"})
+		logs.GetInstance().Logger.Errorf("UpdateUserHandler error %s", err)
+		return
+	}
+
+	go func(updateUserForm UpdateUserForm) {
+		mysqlClient := mysql.GetClient()
+		err := mysqlClient.Model(&mysql.UserSQL{}).Where("userId = ?", updateUserForm.UserId).UpdateColumn(updateUserForm.UpdateField, updateUserForm.UpdateValue).Error
+		if err != nil {
+			logs.GetInstance().Logger.Errorf("UpdateUserHandler error %s", err)
+		}
+	}(updateUserForm)
+
+	ctx.JSON(http.StatusOK, gin.H{"msg": "更新成功"})
+}
+
+type UpdateSystemForm struct {
+	ListIndex   int64       `json:"listIndex"`
+	UpdateField string      `json:"updateField"`
+	UpdateValue interface{} `json:"updateValue"`
+}
+
+func UpdateSystemHandler(ctx *gin.Context) {
+	var updateSystemForm UpdateSystemForm
+	if err := ctx.ShouldBindJSON(&updateSystemForm); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"err": "参数错误"})
+		logs.GetInstance().Logger.Errorf("UpdateSystemHandler error %s", err)
+		return
+	}
+
+	redisClient := redis.GetClient()
+	system := getSystemInRedis(ctx)
+	switch updateSystemForm.UpdateField {
+	case "maxUserLevel":
+		system.MaxUserLevel = updateSystemForm.UpdateValue.(int)
+	case "schoolTyepList":
+		system.SchoolTyepList[updateSystemForm.ListIndex].SchoolTypeName = updateSystemForm.UpdateValue.(string)
+	}
+	systemByte, _ := json.Marshal(system)
+	err := redisClient.Set(ctx, "system", systemByte, 0).Err()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis更新失败"})
+		logs.GetInstance().Logger.Errorf("UpdateSystemHandler error %s", err)
+		return
+	}
+
+	go func(system System) {
+		mysqlClient := mysql.GetClient()
+		schoolTypeList, _ := json.Marshal(system.SchoolTyepList)
+		systemSQL := mysql.SystemSQL{
+			MaxUserLevel:   system.MaxUserLevel,
+			SchoolTyepList: schoolTypeList,
+		}
+		err := mysqlClient.Model(&mysql.SystemSQL{}).Updates(systemSQL).Error
+		if err != nil {
+			logs.GetInstance().Logger.Errorf("UpdateSystemHandler error %s", err)
+		}
+	}(system)
 
 	ctx.JSON(http.StatusOK, gin.H{"msg": "更新成功"})
 }
