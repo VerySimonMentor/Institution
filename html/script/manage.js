@@ -877,6 +877,7 @@ $(document).ready(function() {
             $('#add-type-btn').prop('disable', readonly);
             $('.input-text').prop('readonly', readonly);
         });
+        fetchSystemData();
     }
 
     function fetchSystemData() {
@@ -914,17 +915,37 @@ $(document).ready(function() {
                         systemTextChange(listIndex, field, value);
                     }
                 })(listIndex, 'schoolTypeList'));
+                row.find('input.input-text').prop('readonly', readonly);
                 row.find('.btn-delete').off('click').click((function(listIndex) {
                     return function() {
                         alert('确定删除吗？');
-                        $.get("/system/delete", {listIndex: listIndex}, function(response) {
-                            fetchSystemData();
+                        $.ajax({
+                            url: "/system/delete",
+                            type: "DELETE",
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            data: JSON.stringify({listIndex: listIndex}),
+                            statusCode: {
+                                200: function(response) {
+                                    fetchSystemData();
+                                },
+                                400: function(response) {
+                                    alert(response.results);
+                                }
+                            }
                         });
                     }
                 })(listIndex));
             }
         });
     }
+
+    $("#add-system-btn").click(function() {
+        $.get("/system/create", {pageNum: pageNum}, function(response) {
+            fetchSystemData();
+        });
+    });
 
     function systemTextChange(listIndex, field, value) {
         $.ajax({

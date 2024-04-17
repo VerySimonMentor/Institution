@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -210,12 +209,20 @@ func DeleteItemHandler(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"msg": "删除成功"})
 }
 
+type DeleteForm struct {
+	ListIndex int64 `json:"listIndex"`
+}
+
 func DeleteUserHandler(ctx *gin.Context) {
-	listIndexStr := ctx.Query("listIndex")
-	listIndex, _ := strconv.ParseInt(listIndexStr, 10, 64)
+	var deleteUserForm DeleteForm
+	if err := ctx.ShouldBindJSON(&deleteUserForm); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"err": "参数错误"})
+		logs.GetInstance().Logger.Errorf("DeleleUserHandler error %s", err)
+		return
+	}
 
 	redisClient := redis.GetClient()
-	userString, err := redisClient.LIndex(context.Background(), "user", listIndex).Result()
+	userString, err := redisClient.LIndex(context.Background(), "user", deleteUserForm.ListIndex).Result()
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis查询失败"})
 		logs.GetInstance().Logger.Errorf("DeleteUserHandler error %s", err)
@@ -247,10 +254,15 @@ func DeleteUserHandler(ctx *gin.Context) {
 }
 
 func DeleteSystemHandler(ctx *gin.Context) {
-	listIndexStr := ctx.Query("listIndex")
-	listIndex, _ := strconv.ParseInt(listIndexStr, 10, 64)
+	var deleteSystemForm DeleteForm
+	if err := ctx.ShouldBindJSON(&deleteSystemForm); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"err": "参数错误"})
+		logs.GetInstance().Logger.Errorf("DeleleSystemHandler error %s", err)
+		return
+	}
 
 	usedSchool := make([]string, 0)
+	listIndex := deleteSystemForm.ListIndex
 	system := getSystemInRedis(ctx)
 	currentSchoolTypeId := system.SchoolTyepList[listIndex].SchoolTypeId
 	country := getCountryInRedis(ctx)
