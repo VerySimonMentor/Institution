@@ -269,7 +269,7 @@ func CreateUserHandler(ctx *gin.Context) {
 	mysqlClient := mysql.GetClient()
 	userSQL := mysql.UserSQL{
 		UserAccount:  "default",
-		UserPassWord: "",
+		UserPassWd:   "",
 		UserEmail:    "",
 		UserNumber:   "00000000000",
 		UserLevel:    0,
@@ -291,7 +291,7 @@ func CreateUserHandler(ctx *gin.Context) {
 	user := User{
 		UserId:       userSQL.UserId,
 		UserAccount:  userSQL.UserAccount,
-		UserPassWord: userSQL.UserPassWord,
+		UserPassWord: userSQL.UserPassWd,
 		UserEmail:    userSQL.UserEmail,
 		UserNumber:   userSQL.UserNumber,
 		UserLevel:    userSQL.UserLevel,

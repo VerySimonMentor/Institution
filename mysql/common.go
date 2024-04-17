@@ -43,7 +43,7 @@ func (i ItemSQL) TableName() string {
 type UserSQL struct {
 	UserId       int    `gorm:"column:userId"`
 	UserAccount  string `gorm:"column:userAccount"`
-	UserPassWord string `gorm:"column:userPassWord"`
+	UserPassWd   string `gorm:"column:userPassWd"`
 	UserEmail    string `gorm:"column:userEmail"`
 	UserNumber   string `gorm:"column:userNumber"`
 	UserLevel    int    `gorm:"column:userLevel"`

@@ -38,7 +38,7 @@ create table if not exists item(
 create table if not exists user(
     userId int primary key auto_increment not null,
     userAccount varchar(31) not null,
-    userPasswd varchar(31),
+    userPassWd varchar(255),
     userEmail varchar(255),
     userNumber varchar(255) not null,
     userLevel int not null,
