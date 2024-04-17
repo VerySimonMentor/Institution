@@ -228,14 +228,14 @@ body, h1, table, th, td {
     display: flex;
   }
 
-  .userlevelpage{
+  .user-level-page{
     margin-left: 20px;
     margin-bottom: 5px;
-    margin-top: 5px;
+    margin-top: 20px;
     margin-right: 50px;
   }
 
-  #userlevelInput{
+  #user-level-input{
     margin-top: 20px;
   }
 

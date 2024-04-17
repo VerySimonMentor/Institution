@@ -171,11 +171,18 @@
     <!-- user management -->
 
     <div class="user-level-container">
-      <div class="userlevelpage">用户level数</div>
-      <input type="text" id="userlevelInput" placeholder="请输入level数">
+      <div class="user-level-page">用户level数</div>
+      <input type="text" id="user-level-input" placeholder="请输入level数">
+
+      <label class="switch", id="system-switch">
+        <input type="checkbox">
+        <span class="slider round"></span>
+      </label>
+  
+      <div class="editable">可编辑</div>
     </div>
 
-    <div class="userlevelpage">学校类型列表</div>
+    <button class="add-btn" id="add-type-btn">添加类型</button>
 
     <table id="system-table">
       <thead>
@@ -185,10 +192,6 @@
         </tr>
       </thead>
     </table>
-
-    <div class="pagination" id="user-pagination">
-      <!-- <a href="#" class="page-link" data-page="1">1</a> -->
-    </div>
   </section>
 
 </div>
