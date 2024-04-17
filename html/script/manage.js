@@ -3,9 +3,11 @@ const pageNum = 10;
 var currentCountryPage = 1;
 var currentSchoolPage = 1;
 var currentItemPage = 1;
+var currentUserPage = 1;
 var totalCountryPage;
 var totalSchoolPage;
 var totalItemPage;
+var totalUserPage;
 
 $(document).ready(function() {
     function fetchCountryData(page = currentCountryPage) {
@@ -862,10 +864,161 @@ $(document).ready(function() {
         $("#manage-item-content").css('opacity', '1');
     });
 
-
-
     function initUser(){
-        console.log("initUser");
+        $('#add-user-btn').prop('disabled', true);
+        var userSwitch = $('#user-switch input[type="checkbox"]');
+        userSwitch.prop('checked', false);
+        userSwitch.change(function() {
+            var readonly = !$(this).prop('checked');
+            $('#add-user-btn').prop('disabled', readonly);
+            $('.input-text').prop('readonly', readonly);
+        });
+    }
+
+    function fetchUserData(page = currentUserPage){
+        var data = {
+            page: page,
+            pageNum: pageNum
+        }
+        $.ajax({
+            url: '/user/show',
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            data: JSON.stringify(data),
+            success: function(data) {
+                totalUserPage = data.totalPage;
+                var table = $('#user-table tbody');
+                table.empty();
+                var userSwitch = $('user-switch input[type="checkbox"]');
+                var readonly = !userSwitch.prop('checked');
+
+                for(let i = 0; i < data.results.length; ++i){
+                    var listIndex = (page - 1) * pageNum + i + 1;
+                    var userAccount = $(`<input type="text" class="input-text" value="${data.results[i].userAccount}" readonly />`);
+                    var userEmail = $(`<input type="text" class="input-text" value="${data.results[i].userEmail}" readonly />`);
+                    var userNumber = $(`<input type="text" class="input-text" value="${data.results[i].userNumber}" readonly />`);
+                    var userLevel = $(`<input type="text" class="input-text" value="${data.results[i].userLevel}" readonly />`);
+                    var studentCount = $(`<input type="text" class="input-text" value="${data.results[i].studentCount}" readonly />`);
+                    var userPasswd = $(`<input type="text" class="input-text" value="${data.results[i].userPasswd}" readonly />`);
+                    var row = $(
+                        `<tr>
+                            <td>${listIndex}</td>
+                            <td>${userAccount.prop('outerHTML')}</td>
+                            <td>${userEmail.prop('outerHTML')}</td>
+                            <td>${userNumber.prop('outerHTML')}</td>
+                            <td>${userLevel.prop('outerHTML')}</td>
+                            <td>${studentCount.prop('outerHTML')}</td>
+                            <td>${userPasswd.prop('outerHTML')}</td>
+                            <td>
+                                <a href=# class="btn btn-delete">删除</a>
+                            </td>
+                        </tr>`
+                    );
+                    table.append(row);
+                    row.find('input.input-text').eq(0).change((function(userId, listIndex, inputText) {
+                        return function() {
+                            var value = $(this).val();
+                            userTextChange(userId, listIndex, inputText, value);
+                        }
+                    })(data.results[i].userId, listIndex, 'userAccount'));
+                    row.find('input.input-text').eq(1).change((function(userId, listIndex, inputText) {
+                        return function() {
+                            var value = $(this).val();
+                            userTextChange(userId, listIndex, inputText, value);
+                        }
+                    })(data.results[i].userId, listIndex, 'userEmail'));
+                    row.find('input.input-text').eq(2).change((function(userId, listIndex, inputText) {
+                        return function() {
+                            var value = $(this).val();
+                            userTextChange(userId, listIndex, inputText, value);
+                        }
+                    })(data.results[i].userId, listIndex, 'userNumber'));
+                    row.find('input.input-text').eq(3).change((function(userId, listIndex, inputText) {
+                        return function() {
+                            var value = parseInt($(this).val());
+                            userTextChange(userId, listIndex, inputText, value);
+                        }
+                    })(data.results[i].userId, listIndex, 'userLevel'));
+                    row.find('input.input-text').eq(4).change((function(userId, listIndex, inputText) {
+                        return function() {
+                            var value = parseInt($(this).val());
+                            userTextChange(userId, listIndex, inputText, value);
+                        }
+                    })(data.results[i].userId, listIndex, 'studentCount'));
+                    row.find('input.input-text').eq(5).change((function(userId, listIndex, inputText) {
+                        return function() {
+                            var value = $(this).val();
+                            userTextChange(userId, listIndex, inputText, value);
+                        }
+                    })(data.results[i].userId, listIndex, 'userPasswd'));
+                    row.find('input.input-text').prop('readonly', readonly);
+                    row.find('.btn-delete').click((function(userId, listIndex) {
+                        return function() {
+                            alert('确定删除吗？')
+                            var data = {
+                                userId: userId,
+                                listIndex: listIndex - 1,
+                            }
+                            $.ajax({
+                                url: '/user/delete',
+                                type: 'DELETE',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                data: JSON.stringify(data),
+                                success: function(data) {
+                                    if (table.children().length === 1) {
+                                        $('#user-pagination').children().last().remove();
+                                        if (currentUserPage > 1) {
+                                            currentUserPage--;
+                                        }
+                                    }
+                                    fetchUserData(currentUserPage);
+                                }
+                            });
+                        }
+                    })(data.results[i].userId, listIndex));
+                }
+            }
+        })
+    }
+
+    $(document).on('click', '#user-pagination .page-link', function(e) {
+        e.preventDefault();
+        currentUserPage = $(this).data('page');
+        fetchUserData(currentUserPage);
+    });
+
+    $("#add-user-btn").click(function() {
+        if (currentUserPage != totalUserPage) {
+            currentUserPage = totalUserPage;
+            fetchCountryData(currentUserPage);
+        }
+        $.get("/user/create", {pageNum: pageNum}, function(response) {
+            fetchUserData(response.totalPage);
+        });
+    });
+
+    function userTextChange(userId, listIndex, field, value){
+        $.ajax({
+            url: '/user/changeUser',
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            data: JSON.stringify({
+                userId: userId,
+                listIndex: listIndex - 1,
+                updateField: field,
+                updateValue: value
+            }),
+            success: function(data) {
+                // console.log(data);
+            }
+        })
+
     }
 
     function initSystemSet(){
