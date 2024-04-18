@@ -829,7 +829,7 @@ $(document).ready(function() {
         for (let i=0; i<levelRate.length; i++) {
             var levelId = $(`<input type="text" class="input-text" value="${levelRate[i].levelId}" />`);
             var rate = $(`<input type="text" class="input-text" value="${levelRate[i].levelRate}" />`);
-            var checkbox = $(`<input type="checkbox" />`);
+            var checkbox = $(`<input type="checkbox" id="check-box-${i}" />`).attr('checked', levelRate[i].ifNotCombine);
             var row = $(
                 `<tr>
                     <td>${levelId.prop('outerHTML')}</td>
@@ -855,8 +855,9 @@ $(document).ready(function() {
         var levelRate = [];
         $('#level-table tbody tr').each(function() {
             var levelId = parseInt($(this).find('input.input-text').eq(0).val());
-            var rate = parseInt($(this).find('input.input-text').eq(1).val());
-            levelRate.push({levelId: levelId, levelRate: rate});
+            var rate = $(this).find('input.input-text').eq(1).val();
+            var ifNotCombine = $(this).find('input[type="checkbox"]').prop('checked');
+            levelRate.push({levelId: levelId, levelRate: rate, ifNotCombine: ifNotCombine});
         });
         return levelRate;
     }
