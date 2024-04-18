@@ -88,7 +88,7 @@ func CreateSchoolHandler(ctx *gin.Context) {
 		SchoolEngName:      "default",
 		SchoolChiName:      "默认",
 		SchoolAbbreviation: "默认",
-		SchoolType:         0,
+		SchoolType:         -1,
 		Province:           "",
 		OfficialWebLink:    "",
 		SchoolRemark:       "",

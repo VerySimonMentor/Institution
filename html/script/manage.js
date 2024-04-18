@@ -326,7 +326,11 @@ $(document).ready(function() {
                 }
                 countrySelect.off('change').change(function() {
                     var listIndex = $(this).val();
-                    fetchSchoolData(listIndex);
+                    if (listIndex > 0) {
+                        fetchSchoolData(listIndex);
+                    } else {
+                        $('#school-table tbody').empty();
+                    }
                 });
                 countrySelect.val(listIndex).trigger('change');
             }
@@ -362,9 +366,9 @@ $(document).ready(function() {
                     var engNameText = $(`<input type="text" class="input-text" value="${school[i].schoolEngName}" />`);
                     var abbreviationText = $(`<input type="text" class="input-text" value="${school[i].schoolAbbreviation}" />`);
                     var typeSelect = $(`<select class="input-select"></select>`);
-                    typeSelect.append('<option value="-1">请选择学校类型</option>');
+                    typeSelect.append('<option value=-1>请选择学校类型</option>');
                     for (var j = 0; j < schoolTypeList.length; j++) {
-                        var option = $(`<option value="${schoolTypeList[j].SchoolTypeId}" ${school[i].schoolType == j ? 'selected' : ''}>${schoolTypeList[j].schoolTypeName}</option>`);
+                        var option = $(`<option value="${schoolTypeList[j].schoolTypeId}" ${school[i].schoolType == schoolTypeList[j].schoolTypeId ? 'selected' : ''}>${schoolTypeList[j].schoolTypeName}</option>`);
                         typeSelect.append(option);
                     }
                     var provinceSelect = $(`<select class="input-select"></select>`);
@@ -413,7 +417,8 @@ $(document).ready(function() {
                     })(school[i].schoolId, listIndex, 'schoolAbbreviation'));
                     row.find('select.input-select').eq(0).change((function(schoolId, listIndex, field) {
                         return function() {
-                            var value = $(this).val();
+                            var value = parseInt($(this).val());
+                            console.log(value);
                             if (value >= 0) {
                                 schoolTextChange(schoolId, listIndex, field, value);
                             }
@@ -548,6 +553,7 @@ $(document).ready(function() {
             url: '/school/initPage',
             type: 'GET',
             success: function(data) {
+                $('#item-table tbody').empty();
                 $('#add-item-btn').prop('disabled', true);
                 var itemSwitch = $('#item-switch input[type="checkbox"]');
                 itemSwitch.prop('checked', false);
@@ -566,7 +572,6 @@ $(document).ready(function() {
                     countrySelect.append(option);
                 }
                 countrySelect.off('change').change(function() {
-                    $('#item-table tbody').empty();
                     fetchSchoolList(schoolListIndex);
                 });
                 if(countrylistIndex != 0){
@@ -1088,8 +1093,9 @@ $(document).ready(function() {
                                 200: function(response) {
                                     fetchSystemData();
                                 },
-                                400: function(response) {
-                                    alert(response.results);
+                                400: function(jqXHR) {
+                                    var response = JSON.parse(jqXHR.responseText);
+                                    alert(response.usedSchool);
                                 }
                             }
                         });
