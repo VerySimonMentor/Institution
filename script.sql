@@ -20,7 +20,7 @@ create table if not exists school(
     schoolChiName varchar(255) not null,
     schoolAbbreviation varchar(255),
     schoolType int not null,
-    province varchar(255) not null,
+    province int not null,
     officialWebLink varchar(255) not null,
     schoolRemark varchar(4095),
     schoolAndItem JSON

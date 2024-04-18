@@ -89,7 +89,7 @@ func CreateSchoolHandler(ctx *gin.Context) {
 		SchoolChiName:      "默认",
 		SchoolAbbreviation: "默认",
 		SchoolType:         -1,
-		Province:           "",
+		Province:           -1,
 		OfficialWebLink:    "",
 		SchoolRemark:       "",
 		SchoolAndItem:      []byte("{}"),
@@ -291,7 +291,7 @@ func CreateUserHandler(ctx *gin.Context) {
 	user := User{
 		UserId:       userSQL.UserId,
 		UserAccount:  userSQL.UserAccount,
-		UserPassWord: userSQL.UserPassWd,
+		UserPassWd:   userSQL.UserPassWd,
 		UserEmail:    userSQL.UserEmail,
 		UserNumber:   userSQL.UserNumber,
 		UserLevel:    userSQL.UserLevel,

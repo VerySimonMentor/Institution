@@ -398,7 +398,7 @@ func getUserInRedis(ctx *gin.Context) []User {
 			userList[i] = User{
 				UserId:       user.UserId,
 				UserAccount:  user.UserAccount,
-				UserPassWord: user.UserPassWd,
+				UserPassWd:   user.UserPassWd,
 				UserEmail:    user.UserEmail,
 				UserNumber:   user.UserNumber,
 				UserLevel:    user.UserLevel,

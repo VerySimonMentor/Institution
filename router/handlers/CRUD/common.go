@@ -16,8 +16,9 @@ type Country struct {
 }
 
 type Province struct {
-	EngName string `json:"engName"`
-	ChiName string `json:"chiName"`
+	ProvinceId int    `json:"provinceId"`
+	EngName    string `json:"engName"`
+	ChiName    string `json:"chiName"`
 }
 
 type School struct {
@@ -26,7 +27,7 @@ type School struct {
 	SchoolChiName      string `json:"schoolChiName"`
 	SchoolAbbreviation string `json:"schoolAbbreviation"`
 	SchoolType         int    `json:"schoolType"`
-	Province           string `json:"province"`
+	Province           int    `json:"province"`
 	OfficialWebLink    string `json:"officialWebLink"`
 	SchoolRemark       string `json:"schoolRemark"`
 	SchoolAndItem      []int  `json:"schoolAndItem"`
@@ -49,7 +50,7 @@ type Level struct {
 type User struct {
 	UserId       int    `json:"userId"`
 	UserAccount  string `json:"userAccount"`
-	UserPassWord string `json:"userPassWord"`
+	UserPassWd   string `json:"userPassWd"`
 	UserEmail    string `json:"userEmail"`
 	UserNumber   string `json:"userNumber"`
 	UserLevel    int    `json:"userLevel"`

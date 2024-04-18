@@ -148,7 +148,7 @@ $(document).ready(function() {
                                             });
                                         }
                                     })(data.country.countryId, listIndex));
-                                    fetchProvinceData(data.country.province);
+                                    fetchProvinceData(data.country.province, data.usedProvince);
                                 }
                             });
                         }//
@@ -251,7 +251,7 @@ $(document).ready(function() {
         }
     });
 
-    function fetchProvinceData(province) {
+    function fetchProvinceData(province, usedProvince) {
         var table = $('#province-table tbody');
         table.empty();
         for (let i=0; i<province.length; i++) {
@@ -259,7 +259,7 @@ $(document).ready(function() {
             var engNameText = $(`<input type="text" class="input-text" value="${province[i].engName}" />`);
             var row = $(
                 `<tr>
-                    <td>${i+1}</td>
+                    <td>${province[i].provinceId}</td>
                     <td>${chiNameText.prop('outerHTML')}</td>
                     <td>${engNameText.prop('outerHTML')}</td>
                     <td>
@@ -267,32 +267,56 @@ $(document).ready(function() {
                     </td>
                 </tr>`
             );
-            row.find('.btn-province-delete').off('click').click((function(i){
+            row.find('.btn-province-delete').off('click').click((function(i, usedProvince){
                 return function() {
                     var province = getProvinceData();
+                    if (province[i].provinceId in usedProvince) {
+                        alert('存在省份引用，无法删除，请检查！');
+                        return;
+                    }
                     province.splice(i, 1);
-                    fetchProvinceData(province);
+                    fetchProvinceData(province, usedProvince);
                 }
-            })(i));
+            })(i, usedProvince));
             table.append(row);
         }
+        $('#add-province-btn').off('click').click((function(usedProvince) {
+            return function() {
+                var province = getProvinceData();
+                var maxProvinceId;
+                if (province.length == 0) {
+                    maxProvinceId = 0;
+                } else {
+                    maxProvinceId = province[province.length - 1].provinceId;
+                }
+                province.push({provinceId: maxProvinceId+1, chiName: "新省份", engName: "New Province"});
+                fetchProvinceData(province, usedProvince);
+            }
+        })(usedProvince));
     }
 
     function getProvinceData() {
         var province = [];
         $('#province-table tbody tr').each(function() {
+            var provinceId = parseInt($(this).find('td').eq(0).text());
             var chiName = $(this).find('input.input-text').eq(0).val();
             var engName = $(this).find('input.input-text').eq(1).val();
-            province.push({chiName: chiName, engName: engName});
+            province.push({provinceId: provinceId, chiName: chiName, engName: engName});
         });
         return province;
     }
 
-    $('#add-province-btn').click(function(){
-        var province = getProvinceData();
-        province.push({chiName: "新省份", engName: "New Province"});
-        fetchProvinceData(province);
-    })
+    // $('#add-province-btn').click(function(){
+    //     var province = getProvinceData();
+    //     var maxProvinceId;
+    //     if (province.length == 0) {
+    //         maxProvinceId = 0;
+    //     } else {
+    //         maxProvinceId = province[province.length - 1].provinceId;
+    //     }
+    //     province.push({provinceId: maxProvinceId+1, chiName: "新省份", engName: "New Province"});
+    //     fetchProvinceData(province);
+    // })
 
     $('#cancel-province-btn').click(function(){
         enableSidebarButton();
@@ -372,8 +396,9 @@ $(document).ready(function() {
                         typeSelect.append(option);
                     }
                     var provinceSelect = $(`<select class="input-select"></select>`);
+                    provinceSelect.append('<option value=-1>请选择省份</option>');
                     for (var j = 0; j < province.length; j++) {
-                        var option = $(`<option value="${province[j].chiName}" ${school[i].province === province[j].chiName ? 'selected' : ''}>${province[j].chiName}</option>`);
+                        var option = $(`<option value="${province[j].provinceId}" ${school[i].province === province[j].provinceId ? 'selected' : ''}>${province[j].chiName + ' ' + province[j].engName}</option>`);
                         provinceSelect.append(option);
                     }
                     var linkText = $(`<input type="text" class="input-text" value="${school[i].officialWebLink}" />`);
@@ -910,7 +935,7 @@ $(document).ready(function() {
                     var userNumber = $(`<input type="text" class="input-text" value="${data.results[i].userNumber}" readonly />`);
                     var userLevel = $(`<input type="text" class="input-text" value="${data.results[i].userLevel}" readonly />`);
                     var studentCount = $(`<input type="text" class="input-text" value="${data.results[i].studentCount}" readonly />`);
-                    var userPasswd = $(`<input type="text" class="input-text" value="${data.results[i].userPasswd}" readonly />`);
+                    var userPassWd = $(`<input type="text" class="input-text" value="" readonly />`);
                     var row = $(
                         `<tr>
                             <td>${listIndex}</td>
@@ -919,7 +944,7 @@ $(document).ready(function() {
                             <td>${userNumber.prop('outerHTML')}</td>
                             <td>${userLevel.prop('outerHTML')}</td>
                             <td>${studentCount.prop('outerHTML')}</td>
-                            <td>${userPasswd.prop('outerHTML')}</td>
+                            <td>${userPassWd.prop('outerHTML')}</td>
                             <td>
                                 <a href=# class="btn btn-delete">删除</a>
                             </td>
@@ -961,7 +986,7 @@ $(document).ready(function() {
                             var value = $(this).val();
                             userTextChange(userId, listIndex, inputText, value);
                         }
-                    })(data.results[i].userId, listIndex, 'userPasswd'));
+                    })(data.results[i].userId, listIndex, 'userPassWd'));
                     row.find('input.input-text').prop('readonly', readonly);
                     row.find('.btn-delete').click((function(userId, listIndex) {
                         return function() {
@@ -1030,6 +1055,7 @@ $(document).ready(function() {
                 updateValue: value
             }),
             success: function(data) {
+                fetchUserData(currentUserPage);
             }
         })
 
@@ -1042,7 +1068,7 @@ $(document).ready(function() {
         typeSwitch.change(function() {
             var readonly = !$(this).prop('checked');
             $('#add-type-btn').prop('disabled', readonly);
-            $('.input-text').prop('readonly', readonly);
+            $('#user-level-input').prop('readonly', readonly);
         });
         fetchSystemData();
     }
@@ -1107,6 +1133,9 @@ $(document).ready(function() {
                     }
                 })(listIndex));
             }
+
+            $('#add-type-btn').prop('disabled', readonly);
+            maxUserLevelText.prop('readonly', readonly);
         });
     }
 

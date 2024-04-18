@@ -94,8 +94,18 @@ func ShowProvinceHandler(ctx *gin.Context) {
 		return
 	}
 
+	usedProvince := make(map[int]struct{})
+	schoolKey := fmt.Sprintf(SchoolKey, country.CountryId)
+	school := getSchoolInRedis(ctx, schoolKey, country.CountryAndSchool)
+	for _, s := range school {
+		if s.Province >= 0 {
+			usedProvince[s.Province] = struct{}{}
+		}
+	}
+
 	ctx.JSON(http.StatusOK, gin.H{
-		"country": country,
+		"country":      country,
+		"usedProvince": usedProvince,
 	})
 }
 

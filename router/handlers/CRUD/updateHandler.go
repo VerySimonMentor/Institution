@@ -7,9 +7,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/cast"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -200,15 +200,9 @@ func UpdateSchoolHandler(ctx *gin.Context) {
 	case "schoolAbbreviation":
 		school.SchoolAbbreviation = updateSchoolForm.UpdateValue.(string)
 	case "schoolType":
-		valueF := updateSchoolForm.UpdateValue.(float64)
-		valueS := strconv.FormatFloat(valueF, 'f', -1, 64)
-		value, err := strconv.Atoi(valueS)
-		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"err": "类型转换失败"})
-		}
-		school.SchoolType = value
+		school.SchoolType = cast.ToInt(updateSchoolForm.UpdateValue)
 	case "province":
-		school.Province = updateSchoolForm.UpdateValue.(string)
+		school.Province = cast.ToInt(updateSchoolForm.UpdateValue)
 	case "officialWebLink":
 		school.OfficialWebLink = updateSchoolForm.UpdateValue.(string)
 	case "schoolRemark":
@@ -440,22 +434,23 @@ func UpdateUserHandler(ctx *gin.Context) {
 	switch updateUserForm.UpdateField {
 	case "userAccount":
 		user.UserAccount = updateUserForm.UpdateValue.(string)
-	case "userPassWord":
+	case "userPassWd":
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(updateUserForm.UpdateValue.(string)), bcrypt.DefaultCost)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"err": "密码加密失败"})
 			logs.GetInstance().Logger.Errorf("UpdateUserHandler error %s", err)
 			return
 		}
-		user.UserPassWord = string(hashedPassword)
+		user.UserPassWd = string(hashedPassword)
+		updateUserForm.UpdateValue = string(hashedPassword)
 	case "userEmail":
 		user.UserEmail = updateUserForm.UpdateValue.(string)
 	case "userNumber":
 		user.UserNumber = updateUserForm.UpdateValue.(string)
 	case "userLevel":
-		user.UserLevel = updateUserForm.UpdateValue.(int)
+		user.UserLevel = cast.ToInt(updateUserForm.UpdateValue)
 	case "studentCount":
-		user.StudentCount = updateUserForm.UpdateValue.(int)
+		user.StudentCount = cast.ToInt(updateUserForm.UpdateValue)
 	}
 	userByte, _ := json.Marshal(user)
 	err = redisClient.LSet(ctx, "user", updateUserForm.ListIndex, userByte).Err()
@@ -494,7 +489,7 @@ func UpdateSystemHandler(ctx *gin.Context) {
 	system := getSystemInRedis(ctx)
 	switch updateSystemForm.UpdateField {
 	case "maxUserLevel":
-		system.MaxUserLevel = updateSystemForm.UpdateValue.(int)
+		system.MaxUserLevel = cast.ToInt(updateSystemForm.UpdateValue)
 	case "schoolTypeList":
 		system.SchoolTypeList[updateSystemForm.ListIndex].SchoolTypeName = updateSystemForm.UpdateValue.(string)
 	}

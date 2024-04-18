@@ -18,7 +18,7 @@ type SchoolSQL struct {
 	SchoolChiName      string `gorm:"column:schoolChiName"`
 	SchoolAbbreviation string `gorm:"column:schoolAbbreviation"`
 	SchoolType         int    `gorm:"column:schoolType"`
-	Province           string `gorm:"column:province"`
+	Province           int    `gorm:"column:province"`
 	OfficialWebLink    string `gorm:"column:officialWebLink"`
 	SchoolRemark       string `gorm:"column:schoolRemark"`
 	SchoolAndItem      []byte `gorm:"column:schoolAndItem"`

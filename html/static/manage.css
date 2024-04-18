@@ -224,6 +224,22 @@ body, h1, table, th, td {
     margin-left: 10px;
   }
 
+  #system-switch{
+    position: relative;
+    display: inline-block;
+    width: 80px;
+    height: 34px;
+    margin-left: 20px;
+    top: 20px;
+  }
+
+  #system-editable{
+    top: 20px;
+    display: inline-block;
+    margin-left: 5px;
+    position: relative;
+  }
+
   .user-level-container{
     display: flex;
   }
