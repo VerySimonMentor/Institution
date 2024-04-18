@@ -177,6 +177,7 @@ $(document).ready(function() {
             fetchCountryData(currentCountryPage);
         }
         $.get("/country/create", {pageNum: pageNum}, function(response) {
+            currentCountryPage = response.totalPage;
             fetchCountryData(response.totalPage);
         });
     });
@@ -195,7 +196,6 @@ $(document).ready(function() {
                 updateValue: value
             }),
             success: function(data) {
-                // console.log(data);
             }
         });
     }
@@ -418,7 +418,6 @@ $(document).ready(function() {
                     row.find('select.input-select').eq(0).change((function(schoolId, listIndex, field) {
                         return function() {
                             var value = parseInt($(this).val());
-                            console.log(value);
                             if (value >= 0) {
                                 schoolTextChange(schoolId, listIndex, field, value);
                             }
@@ -543,7 +542,6 @@ $(document).ready(function() {
                 updateValue: value
             }),
             success: function(data) {
-                // console.log(data);
             }
         });
     }
@@ -818,7 +816,6 @@ $(document).ready(function() {
                 updateValue: value
             }),
             success: function(data){
-                console.log("edit item data success!");
             }
         });
     }
@@ -829,10 +826,12 @@ $(document).ready(function() {
         for (let i=0; i<levelRate.length; i++) {
             var levelId = $(`<input type="text" class="input-text" value="${levelRate[i].levelId}" />`);
             var rate = $(`<input type="text" class="input-text" value="${levelRate[i].levelRate}" />`);
+            var checkbox = $(`<input type="checkbox" id="check-box-${i}" />`).attr('checked', levelRate[i].ifNotCombine);
             var row = $(
                 `<tr>
                     <td>${levelId.prop('outerHTML')}</td>
                     <td>${rate.prop('outerHTML')}</td>
+                    <td>${checkbox.prop('outerHTML')}</td>
                     <td>
                         <a href=# class="btn btn-level-delete">删除</a>
                     </td>
@@ -853,8 +852,9 @@ $(document).ready(function() {
         var levelRate = [];
         $('#level-table tbody tr').each(function() {
             var levelId = parseInt($(this).find('input.input-text').eq(0).val());
-            var rate = parseInt($(this).find('input.input-text').eq(1).val());
-            levelRate.push({levelId: levelId, levelRate: rate});
+            var rate = $(this).find('input.input-text').eq(1).val();
+            var ifNotCombine = $(this).find('input[type="checkbox"]').prop('checked');
+            levelRate.push({levelId: levelId, levelRate: rate, ifNotCombine: ifNotCombine});
         });
         return levelRate;
     }
@@ -900,7 +900,7 @@ $(document).ready(function() {
                 totalUserPage = data.totalPage;
                 var table = $('#user-table tbody');
                 table.empty();
-                var userSwitch = $('user-switch input[type="checkbox"]');
+                var userSwitch = $('#user-switch input[type="checkbox"]');
                 var readonly = !userSwitch.prop('checked');
 
                 for(let i = 0; i < data.results.length; ++i){
@@ -990,6 +990,11 @@ $(document).ready(function() {
                         }
                     })(data.results[i].userId, listIndex));
                 }
+                $('#user-pagination').empty();
+                for (let i = 1; i <= data.totalPage; i++) {
+                    $('#user-pagination').append(`<a class="page-link" href="#" data-page="${i}">${i}</a>`);
+                }
+                $('#add-user-btn').prop('disabled', readonly);
             }
         })
     }
@@ -1006,6 +1011,7 @@ $(document).ready(function() {
             fetchCountryData(currentUserPage);
         }
         $.get("/user/create", {pageNum: pageNum}, function(response) {
+            currentUserPage = response.totalPage;
             fetchUserData(response.totalPage);
         });
     });
@@ -1024,7 +1030,6 @@ $(document).ready(function() {
                 updateValue: value
             }),
             success: function(data) {
-                // console.log(data);
             }
         })
 
