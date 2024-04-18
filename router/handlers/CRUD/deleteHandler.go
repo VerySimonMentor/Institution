@@ -264,7 +264,7 @@ func DeleteSystemHandler(ctx *gin.Context) {
 	usedSchool := make([]string, 0)
 	listIndex := deleteSystemForm.ListIndex
 	system := getSystemInRedis(ctx)
-	currentSchoolTypeId := system.SchoolTyepList[listIndex].SchoolTypeId
+	currentSchoolTypeId := system.SchoolTypeList[listIndex].SchoolTypeId
 	country := getCountryInRedis(ctx)
 	for _, c := range country {
 		schoolKey := fmt.Sprintf(SchoolKey, c.CountryId)
@@ -283,7 +283,7 @@ func DeleteSystemHandler(ctx *gin.Context) {
 		})
 		return
 	}
-	system.SchoolTyepList = append(system.SchoolTyepList[:listIndex], system.SchoolTyepList[listIndex+1:]...)
+	system.SchoolTypeList = append(system.SchoolTypeList[:listIndex], system.SchoolTypeList[listIndex+1:]...)
 	redisClient := redis.GetClient()
 	systemString, _ := json.Marshal(system)
 	_, err := redisClient.Set(context.Background(), "system", systemString, 0).Result()
@@ -295,12 +295,13 @@ func DeleteSystemHandler(ctx *gin.Context) {
 
 	go func(system System) {
 		mysqlClient := mysql.GetClient()
-		schoolTypeList, _ := json.Marshal(system.SchoolTyepList)
+		schoolTypeList, _ := json.Marshal(system.SchoolTypeList)
 		systemSQL := mysql.SystemSQL{
+			SystemId:       system.SystemId,
 			MaxUserLevel:   system.MaxUserLevel,
-			SchoolTyepList: schoolTypeList,
+			SchoolTypeList: schoolTypeList,
 		}
-		err := mysqlClient.Model(&mysql.SystemSQL{}).Updates(systemSQL).Error
+		err := mysqlClient.Model(&mysql.SystemSQL{}).Where("systemId = ?", systemSQL.SystemId).Updates(systemSQL).Error
 		if err != nil {
 			logs.GetInstance().Logger.Errorf("DeleteSystemHandler error %s", err)
 		}

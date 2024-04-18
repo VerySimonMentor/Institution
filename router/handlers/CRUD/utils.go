@@ -312,9 +312,17 @@ func getSystemInRedis(ctx *gin.Context) System {
 
 		mysqlClient.Model(&mysql.SystemSQL{}).Count(&count)
 		if count == 0 {
-			return System{
+			systemSQL = mysql.SystemSQL{
 				MaxUserLevel:   0,
-				SchoolTyepList: make([]SchoolType, 0),
+				SchoolTypeList: []byte("[]"),
+			}
+			if err := mysqlClient.Model(&mysql.SystemSQL{}).Create(&systemSQL).Error; err != nil {
+				ctx.JSON(http.StatusInternalServerError, gin.H{"err": "创建失败"})
+				logs.GetInstance().Logger.Errorf("ShowSystemHandler error %s", err)
+				return System{
+					MaxUserLevel:   0,
+					SchoolTypeList: make([]SchoolType, 0),
+				}
 			}
 		}
 
@@ -324,10 +332,11 @@ func getSystemInRedis(ctx *gin.Context) System {
 			return System{}
 		}
 		var schoolTyepList []SchoolType
-		json.Unmarshal(systemSQL.SchoolTyepList, &schoolTyepList)
+		json.Unmarshal(systemSQL.SchoolTypeList, &schoolTyepList)
 		system := System{
+			SystemId:       systemSQL.SystemId,
 			MaxUserLevel:   systemSQL.MaxUserLevel,
-			SchoolTyepList: schoolTyepList,
+			SchoolTypeList: schoolTyepList,
 		}
 		systemJSON, _ := json.Marshal(system)
 		if err := redisClient.Set(context.Background(), "system", systemJSON, 0).Err(); err != nil {

@@ -172,7 +172,7 @@ func ShowSchoolHandler(ctx *gin.Context) {
 		"results":        schoolResp,
 		"province":       country.Province,
 		"totalPage":      totalPage,
-		"schoolTypeList": system.SchoolTyepList,
+		"schoolTypeList": system.SchoolTypeList,
 	})
 }
 

@@ -490,8 +490,8 @@ func UpdateSystemHandler(ctx *gin.Context) {
 	switch updateSystemForm.UpdateField {
 	case "maxUserLevel":
 		system.MaxUserLevel = updateSystemForm.UpdateValue.(int)
-	case "schoolTyepList":
-		system.SchoolTyepList[updateSystemForm.ListIndex].SchoolTypeName = updateSystemForm.UpdateValue.(string)
+	case "schoolTypeList":
+		system.SchoolTypeList[updateSystemForm.ListIndex].SchoolTypeName = updateSystemForm.UpdateValue.(string)
 	}
 	systemByte, _ := json.Marshal(system)
 	err := redisClient.Set(ctx, "system", systemByte, 0).Err()
@@ -503,12 +503,13 @@ func UpdateSystemHandler(ctx *gin.Context) {
 
 	go func(system System) {
 		mysqlClient := mysql.GetClient()
-		schoolTypeList, _ := json.Marshal(system.SchoolTyepList)
+		schoolTypeList, _ := json.Marshal(system.SchoolTypeList)
 		systemSQL := mysql.SystemSQL{
+			SystemId:       system.SystemId,
 			MaxUserLevel:   system.MaxUserLevel,
-			SchoolTyepList: schoolTypeList,
+			SchoolTypeList: schoolTypeList,
 		}
-		err := mysqlClient.Model(&mysql.SystemSQL{}).Updates(systemSQL).Error
+		err := mysqlClient.Model(&mysql.SystemSQL{}).Where("systemId = ?", systemSQL.SystemId).Updates(systemSQL).Error
 		if err != nil {
 			logs.GetInstance().Logger.Errorf("UpdateSystemHandler error %s", err)
 		}

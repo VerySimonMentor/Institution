@@ -46,6 +46,7 @@ create table if not exists user(
 );
 
 create table if not exists systemSetting(
+    systemId int primary key auto_increment not null,
     maxUserLevel int not null,
     schoolTypeList JSON
 );

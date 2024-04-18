@@ -41,8 +41,9 @@ type Item struct {
 }
 
 type Level struct {
-	LevelId   int `json:"levelId"`
-	LevelRate int `json:"levelRate"`
+	LevelId      int    `json:"levelId"`
+	LevelRate    string `json:"levelRate"`
+	IfNotCombine bool   `json:"ifNotCombine"`
 }
 
 type User struct {
@@ -56,8 +57,9 @@ type User struct {
 }
 
 type System struct {
+	SystemId       int          `json:"systemId"`
 	MaxUserLevel   int          `json:"maxUserLevel"`
-	SchoolTyepList []SchoolType `json:"schoolTyepList"`
+	SchoolTypeList []SchoolType `json:"schoolTypeList"`
 }
 
 type SchoolType struct {

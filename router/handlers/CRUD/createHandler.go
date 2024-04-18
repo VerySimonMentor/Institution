@@ -316,8 +316,13 @@ func CreateUserHandler(ctx *gin.Context) {
 
 func CreateSystemHandler(ctx *gin.Context) {
 	system := getSystemInRedis(ctx)
-	maxSchoolTypeId := system.SchoolTyepList[len(system.SchoolTyepList)-1].SchoolTypeId
-	system.SchoolTyepList = append(system.SchoolTyepList, SchoolType{
+	var maxSchoolTypeId int
+	if len(system.SchoolTypeList) == 0 {
+		maxSchoolTypeId = 0
+	} else {
+		maxSchoolTypeId = system.SchoolTypeList[len(system.SchoolTypeList)-1].SchoolTypeId
+	}
+	system.SchoolTypeList = append(system.SchoolTypeList, SchoolType{
 		SchoolTypeId:   maxSchoolTypeId + 1,
 		SchoolTypeName: "默认",
 	})
@@ -327,7 +332,13 @@ func CreateSystemHandler(ctx *gin.Context) {
 
 	go func(system System) {
 		mysqlClient := mysql.GetClient()
-		err := mysqlClient.Model(&mysql.SystemSQL{}).Updates(system).Error
+		schoolTypeList, _ := json.Marshal(system.SchoolTypeList)
+		systemSQL := mysql.SystemSQL{
+			SystemId:       system.SystemId,
+			MaxUserLevel:   system.MaxUserLevel,
+			SchoolTypeList: schoolTypeList,
+		}
+		err := mysqlClient.Model(&mysql.SystemSQL{}).Where("systemId = ?", systemSQL.SystemId).Updates(systemSQL).Error
 		if err != nil {
 			logs.GetInstance().Logger.Errorf("CreateSystemHandler error %s", err)
 		}

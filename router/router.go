@@ -50,6 +50,7 @@ func RouterInit(config *config.Config) *gin.Engine {
 	ginRouter.POST("/item/changeProportion/save", crud.UpdateLevelHandler)
 	ginRouter.POST("/user/show", crud.ShowUserHandler)
 	ginRouter.POST("/user/changeUser", crud.UpdateUserHandler)
+	ginRouter.POST("/system/change", crud.UpdateSystemHandler)
 
 	ginRouter.DELETE("/country/delete", crud.DeleteCountryHandler)
 	ginRouter.DELETE("/school/delete", crud.DeleteSchoolHandler)
