@@ -362,6 +362,7 @@ $(document).ready(function() {
                     var engNameText = $(`<input type="text" class="input-text" value="${school[i].schoolEngName}" />`);
                     var abbreviationText = $(`<input type="text" class="input-text" value="${school[i].schoolAbbreviation}" />`);
                     var typeSelect = $(`<select class="input-select"></select>`);
+                    typeSelect.append('<option value="-1">请选择学校类型</option>');
                     for (var j = 0; j < schoolTypeList.length; j++) {
                         var option = $(`<option value="${schoolTypeList[j].SchoolTypeId}" ${school[i].schoolType == j ? 'selected' : ''}>${schoolTypeList[j].schoolTypeName}</option>`);
                         typeSelect.append(option);
@@ -413,7 +414,9 @@ $(document).ready(function() {
                     row.find('select.input-select').eq(0).change((function(schoolId, listIndex, field) {
                         return function() {
                             var value = $(this).val();
-                            schoolTextChange(schoolId, listIndex, field, value);
+                            if (value >= 0) {
+                                schoolTextChange(schoolId, listIndex, field, value);
+                            }
                         }
                     })(school[i].schoolId, listIndex, 'schoolType'));
                     row.find('select.input-select').eq(1).change((function(schoolId, listIndex, field) {
@@ -1028,7 +1031,7 @@ $(document).ready(function() {
         typeSwitch.prop('checked', false);
         typeSwitch.change(function() {
             var readonly = !$(this).prop('checked');
-            $('#add-type-btn').prop('disable', readonly);
+            $('#add-type-btn').prop('disabled', readonly);
             $('.input-text').prop('readonly', readonly);
         });
         fetchSystemData();
@@ -1060,6 +1063,7 @@ $(document).ready(function() {
                         <td>${schoolTypeNameText.prop('outerHTML')}</td>
                         <td>
                             <a href=# class="btn btn-delete">删除</a>
+                        </td>
                     </tr>`
                 );
                 table.append(row);
@@ -1079,7 +1083,7 @@ $(document).ready(function() {
                             headers: {
                                 'Content-Type': 'application/json'
                             },
-                            data: JSON.stringify({listIndex: listIndex}),
+                            data: JSON.stringify({listIndex: listIndex - 1}),
                             statusCode: {
                                 200: function(response) {
                                     fetchSystemData();
@@ -1095,7 +1099,7 @@ $(document).ready(function() {
         });
     }
 
-    $("#add-system-btn").click(function() {
+    $("#add-type-btn").click(function() {
         $.get("/system/create", {pageNum: pageNum}, function(response) {
             fetchSystemData();
         });
@@ -1103,14 +1107,14 @@ $(document).ready(function() {
 
     function systemTextChange(listIndex, field, value) {
         $.ajax({
-            url: '/changeSystem',
+            url: '/system/change',
             type: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             data: JSON.stringify({
                 listIndex: listIndex - 1,
-                updateField, field,
+                updateField: field,
                 updateValue: value
             }),
             success: function(response) {

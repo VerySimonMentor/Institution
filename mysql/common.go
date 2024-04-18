@@ -55,8 +55,9 @@ func (u UserSQL) TableName() string {
 }
 
 type SystemSQL struct {
+	SystemId       int    `gorm:"column:systemId"`
 	MaxUserLevel   int    `gorm:"column:maxUserLevel"`
-	SchoolTyepList []byte `gorm:"column:schoolTyepList"`
+	SchoolTypeList []byte `gorm:"column:schoolTypeList"`
 }
 
 func (s SystemSQL) TableName() string {
