@@ -277,9 +277,13 @@ func DeleteSystemHandler(ctx *gin.Context) {
 	}
 
 	if len(usedSchool) > 0 {
+		usedSchoolStr := ""
+		for _, u := range usedSchool {
+			usedSchoolStr += u + "\n"
+		}
 		ctx.JSON(http.StatusBadRequest, gin.H{
-			"err":     "该类型正在使用中",
-			"results": usedSchool,
+			"err":        "该类型正在使用中",
+			"usedSchool": usedSchoolStr,
 		})
 		return
 	}

@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -191,22 +192,27 @@ func UpdateSchoolHandler(ctx *gin.Context) {
 		return
 	}
 
-	updateValue := updateSchoolForm.UpdateValue.(string)
 	switch updateSchoolForm.UpdateField {
 	case "schoolEngName":
-		school.SchoolEngName = updateValue
+		school.SchoolEngName = updateSchoolForm.UpdateValue.(string)
 	case "schoolChiName":
-		school.SchoolChiName = updateValue
+		school.SchoolChiName = updateSchoolForm.UpdateValue.(string)
 	case "schoolAbbreviation":
-		school.SchoolAbbreviation = updateValue
+		school.SchoolAbbreviation = updateSchoolForm.UpdateValue.(string)
 	case "schoolType":
-		school.SchoolType = updateSchoolForm.UpdateValue.(int)
+		valueF := updateSchoolForm.UpdateValue.(float64)
+		valueS := strconv.FormatFloat(valueF, 'f', -1, 64)
+		value, err := strconv.Atoi(valueS)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"err": "类型转换失败"})
+		}
+		school.SchoolType = value
 	case "province":
-		school.Province = updateValue
+		school.Province = updateSchoolForm.UpdateValue.(string)
 	case "officialWebLink":
-		school.OfficialWebLink = updateValue
+		school.OfficialWebLink = updateSchoolForm.UpdateValue.(string)
 	case "schoolRemark":
-		school.SchoolRemark = updateValue
+		school.SchoolRemark = updateSchoolForm.UpdateValue.(string)
 	}
 	schoolByte, _ := json.Marshal(school)
 	err = redisClient.LSet(ctx, schoolKey, updateSchoolForm.SchoolListIndex, schoolByte).Err()
@@ -431,12 +437,11 @@ func UpdateUserHandler(ctx *gin.Context) {
 		return
 	}
 
-	updateValue := updateUserForm.UpdateValue.(string)
 	switch updateUserForm.UpdateField {
 	case "userAccount":
-		user.UserAccount = updateValue
+		user.UserAccount = updateUserForm.UpdateValue.(string)
 	case "userPassWord":
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(updateValue), bcrypt.DefaultCost)
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(updateUserForm.UpdateValue.(string)), bcrypt.DefaultCost)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"err": "密码加密失败"})
 			logs.GetInstance().Logger.Errorf("UpdateUserHandler error %s", err)
@@ -444,9 +449,9 @@ func UpdateUserHandler(ctx *gin.Context) {
 		}
 		user.UserPassWord = string(hashedPassword)
 	case "userEmail":
-		user.UserEmail = updateValue
+		user.UserEmail = updateUserForm.UpdateValue.(string)
 	case "userNumber":
-		user.UserNumber = updateValue
+		user.UserNumber = updateUserForm.UpdateValue.(string)
 	case "userLevel":
 		user.UserLevel = updateUserForm.UpdateValue.(int)
 	case "studentCount":
