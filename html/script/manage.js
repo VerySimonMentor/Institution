@@ -824,10 +824,12 @@ $(document).ready(function() {
         for (let i=0; i<levelRate.length; i++) {
             var levelId = $(`<input type="text" class="input-text" value="${levelRate[i].levelId}" />`);
             var rate = $(`<input type="text" class="input-text" value="${levelRate[i].levelRate}" />`);
+            var checkbox = $(`<input type="checkbox" />`);
             var row = $(
                 `<tr>
                     <td>${levelId.prop('outerHTML')}</td>
                     <td>${rate.prop('outerHTML')}</td>
+                    <td>${checkbox.prop('outerHTML')}</td>
                     <td>
                         <a href=# class="btn btn-level-delete">删除</a>
                     </td>
