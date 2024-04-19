@@ -10,12 +10,12 @@ import (
 )
 
 // 注册路由
-func RouterInit(config *config.Config) *gin.Engine {
+func RouterInit(config *config.Config, rootPath string) *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
 	ginRouter := gin.Default()
-	ginRouter.LoadHTMLGlob("html/*.html")
-	ginRouter.Static("/static", "html/static")
-	ginRouter.Static("/script", "html/script")
+	ginRouter.LoadHTMLGlob(rootPath + "/html/*.html")
+	ginRouter.Static(rootPath+"/static", "html/static")
+	ginRouter.Static(rootPath+"/script", "html/script")
 
 	ginRouter.GET("/", func(ctx *gin.Context) {
 		ctx.Redirect(http.StatusFound, "/login")

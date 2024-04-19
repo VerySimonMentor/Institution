@@ -13,6 +13,8 @@ import (
 var (
 	loggerInstance *Log
 	mutex          sync.Mutex
+
+	rootPath string
 )
 
 type Log struct {
@@ -30,7 +32,7 @@ func (l *Log) initLog() {
 	})
 	l.Logger.SetReportCaller(true)
 	now := time.Now()
-	l.logFileName = fmt.Sprintf("logs/log-%d-%d-%d.txt", now.Year(), now.Month(), now.Day())
+	l.logFileName = fmt.Sprintf(rootPath+"/logs/log-%d-%d-%d.txt", now.Year(), now.Month(), now.Day())
 	logFileTemp, err := os.OpenFile(l.logFileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		l.Logger.Fatal(err)
@@ -56,4 +58,8 @@ func GetInstance() *Log {
 
 func (l *Log) CloseLogFile() {
 	l.logFile.Close()
+}
+
+func SetRootPath(path string) {
+	rootPath = path
 }
