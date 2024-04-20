@@ -104,7 +104,8 @@
 				if (data.err) {
 					alert(data.err);
 				} else {
-					// document.cookie = "username=" + username;
+					document.cookie = "username=" + username;
+					document.cookie = "password=" + password;
 					window.location.href = "/manage";
 				}
 			});

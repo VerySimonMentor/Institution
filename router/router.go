@@ -23,6 +23,11 @@ func RouterInit(config *config.Config, rootPath string) *gin.Engine {
 	ginRouter.GET("/login", func(ctx *gin.Context) {
 		ctx.HTML(http.StatusOK, "login.html", gin.H{})
 	})
+	ginRouter.POST("/login", func(ctx *gin.Context) {
+		user.LoginHandler(ctx, &config.Admin)
+	})
+	ginRouter.Use(CookieVerify())
+
 	ginRouter.GET("/manage", func(ctx *gin.Context) {
 		ctx.HTML(http.StatusOK, "manage.html", gin.H{})
 	})
@@ -34,9 +39,6 @@ func RouterInit(config *config.Config, rootPath string) *gin.Engine {
 	ginRouter.GET("/system/create", crud.CreateSystemHandler)
 
 	ginRouter.POST("/country/show", crud.ShowCountryHandler)
-	ginRouter.POST("/login", func(ctx *gin.Context) {
-		user.LoginHandler(ctx, &config.Admin)
-	})
 	ginRouter.POST("/changeCountry", crud.UpdateCountryHandler)
 	ginRouter.POST("/country/changeProvince/show", crud.ShowProvinceHandler)
 	ginRouter.POST("/country/changeProvince/save", crud.UpdateProvinceHandler)
