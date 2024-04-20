@@ -11,7 +11,12 @@ import (
 )
 
 func main() {
-	rootPath := os.Args[1]
+	var rootPath string
+	if len(os.Args) > 1 {
+		rootPath = os.Args[1]
+	} else {
+		rootPath, _ = os.Getwd()
+	}
 
 	logs.SetRootPath(rootPath)
 	logs.GetInstance().Logger.Infof("logger start!")
