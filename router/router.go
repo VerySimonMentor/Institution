@@ -2,6 +2,7 @@ package router
 
 import (
 	"Institution/config"
+	"Institution/router/handlers"
 	crud "Institution/router/handlers/CRUD"
 	"Institution/router/handlers/user"
 	"net/http"
@@ -37,6 +38,7 @@ func RouterInit(config *config.Config, rootPath string) *gin.Engine {
 	ginRouter.GET("/user/create", crud.CreateUserHandler)
 	ginRouter.GET("/system/show", crud.ShowSystemHandler)
 	ginRouter.GET("/system/create", crud.CreateSystemHandler)
+	ginRouter.GET("/flush", handlers.FlushRedisHandler)
 
 	ginRouter.POST("/country/show", crud.ShowCountryHandler)
 	ginRouter.POST("/changeCountry", crud.UpdateCountryHandler)
