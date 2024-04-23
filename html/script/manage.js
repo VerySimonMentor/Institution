@@ -917,6 +917,7 @@ $(document).ready(function() {
             var readonly = !$(this).prop('checked');
             $('#add-user-btn').prop('disabled', readonly);
             $('.input-text').prop('readonly', readonly);
+            $('.input-select').prop('disabled', readonly);
         });
         fetchUserData();
     }
@@ -945,7 +946,12 @@ $(document).ready(function() {
                     var userAccount = $(`<input type="text" class="input-text" value="${data.results[i].userAccount}" readonly />`);
                     var userEmail = $(`<input type="text" class="input-text" value="${data.results[i].userEmail}" readonly />`);
                     var userNumber = $(`<input type="text" class="input-text" value="${data.results[i].userNumber}" readonly />`);
-                    var userLevel = $(`<input type="text" class="input-text" value="${data.results[i].userLevel}" readonly />`);
+                    var userLevel = $(`<select class="input-select"></select>`);
+                    userLevel.append('<option value=-1>请选择用户等级</option>');
+                    for (var j = 1; j <= data.maxUserLevel; j++) {
+                        var option = $(`<option value="${j}" ${data.results[i].userLevel == j ? 'selected' : ''}>${j}</option>`);
+                        userLevel.append(option);
+                    }
                     var studentCount = $(`<input type="text" class="input-text" value="${data.results[i].studentCount}" readonly />`);
                     var userPassWd = $(`<input type="text" class="input-text" value="" readonly />`);
                     var row = $(
@@ -981,25 +987,28 @@ $(document).ready(function() {
                             userTextChange(userId, listIndex, inputText, value);
                         }
                     })(data.results[i].userId, listIndex, 'userNumber'));
+                    row.find('select.input-select').eq(0).change((function(userId, listIndex, inputText) {
+                        return function() {
+                            var value = parseInt($(this).val());
+                            if (value >= 0) {
+                                userTextChange(userId, listIndex, inputText, value);
+                            }    
+                        }
+                    })(data.results[i].userId, listIndex, 'userLevel'));
                     row.find('input.input-text').eq(3).change((function(userId, listIndex, inputText) {
                         return function() {
                             var value = parseInt($(this).val());
                             userTextChange(userId, listIndex, inputText, value);
                         }
-                    })(data.results[i].userId, listIndex, 'userLevel'));
-                    row.find('input.input-text').eq(4).change((function(userId, listIndex, inputText) {
-                        return function() {
-                            var value = parseInt($(this).val());
-                            userTextChange(userId, listIndex, inputText, value);
-                        }
                     })(data.results[i].userId, listIndex, 'studentCount'));
-                    row.find('input.input-text').eq(5).change((function(userId, listIndex, inputText) {
+                    row.find('input.input-text').eq(4).change((function(userId, listIndex, inputText) {
                         return function() {
                             var value = $(this).val();
                             userTextChange(userId, listIndex, inputText, value);
                         }
                     })(data.results[i].userId, listIndex, 'userPassWd'));
                     row.find('input.input-text').prop('readonly', readonly);
+                    row.find('select.input-select').prop('disabled', readonly);
                     row.find('.btn-delete').click((function(userId, listIndex) {
                         return function() {
                             var result = confirm('确定删除吗？')
