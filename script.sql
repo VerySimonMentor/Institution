@@ -2,7 +2,7 @@ create user if not exists "institution"@"localhost" identified by "institution";
 GRANT ALL PRIVILEGES ON *.* TO 'institution'@'localhost' with grant option;
 flush privileges;
 
-create database if not exists institution-2024;
+create database if not exists institution2024;
 
 use institution;
 
