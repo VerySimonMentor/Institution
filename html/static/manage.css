@@ -21,6 +21,7 @@ body, h1, table, th, td {
     background-color: #007bff;
     color: white;
     height: 40px;
+    width: 100%;
   }
   
   .search-container input,
@@ -43,14 +44,6 @@ body, h1, table, th, td {
     margin-left: 20px;
     width: 100px;
     height: 40px;
-  }
-  
-  .country-content {
-    margin-left: 20vw;
-  }
-
-  .school-content {
-    margin-left: 20vw;
   }
   
   .toggle-switch {
@@ -362,4 +355,31 @@ body, h1, table, th, td {
 
 #flush-btn{
   margin-top: 200px;
+}
+
+.content-full {
+  position: absolute;
+  top: 80px;
+  left: 0vw;
+  display: block;
+  justify-content: center;
+}
+
+.show-content {
+  display: block;
+  position: absolute;
+  top: 80px;
+  left: 20vw;
+}
+
+.hide-content {
+  display: none;
+}
+
+#toggle-sidebar {
+  background-color: #72145e;
+  width: 45px;
+  height: 45px;
+  font-size: 40px;
+  color: white;
 }
