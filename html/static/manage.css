@@ -359,3 +359,7 @@ body, h1, table, th, td {
   height: 100%;
   border-collapse: collapse;
 }
+
+#flush-btn{
+  margin-top: 200px;
+}

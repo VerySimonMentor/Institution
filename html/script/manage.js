@@ -63,7 +63,10 @@ $(document).ready(function() {
                     row.find('input.input-text').prop('readonly', readonly);
                     row.find('.btn-delete').click((function(countryId, listIndex) {
                         return function() {
-                            alert('确定删除吗？');
+                            var result = confirm('确定删除吗？');
+                            if (!result) {
+                                return;
+                            }
                             var data = {
                                 countryId: countryId,
                                 listIndex: listIndex - 1,
@@ -246,6 +249,9 @@ $(document).ready(function() {
             case 'system-set':
                 initSystemSet();
                 break;
+            case 'flush-btn':
+                flush();
+                break;
             default:
                 break;
         }
@@ -271,7 +277,7 @@ $(document).ready(function() {
                 return function() {
                     var province = getProvinceData();
                     if (province[i].provinceId in usedProvince) {
-                        alert('存在省份引用，无法删除，请检查！');
+                        confirm('存在省份引用，无法删除，请检查！');
                         return;
                     }
                     province.splice(i, 1);
@@ -470,7 +476,10 @@ $(document).ready(function() {
                     row.find('select.input-select').prop('disabled', readonly);
                     row.find('.btn-school-delete').click((function(schoolId, listIndex) {
                         return function() {
-                            alert('确定删除吗？');
+                            var result = confirm('确定删除吗？');
+                            if (!result) {
+                                return;
+                            }
                             var countryListIndex = $('#school-page-country-select').val();
                             var data = {
                                 countryListIndex: countryListIndex - 1,
@@ -753,7 +762,10 @@ $(document).ready(function() {
 
                     row.find('.btn-item-delete').click((function(itemId, listIndex) {
                         return function() {
-                            alert('确定删除吗？');
+                            var result = confirm('确定删除吗？');
+                            if (!result) {
+                                return;
+                            }
                             var countryListIndex = $('#item-page-country-select').val();
                             var schoolListIndex = $('#item-page-school-select').val();
                             var data = {
@@ -905,6 +917,7 @@ $(document).ready(function() {
             var readonly = !$(this).prop('checked');
             $('#add-user-btn').prop('disabled', readonly);
             $('.input-text').prop('readonly', readonly);
+            $('.input-select').prop('disabled', readonly);
         });
         fetchUserData();
     }
@@ -933,7 +946,12 @@ $(document).ready(function() {
                     var userAccount = $(`<input type="text" class="input-text" value="${data.results[i].userAccount}" readonly />`);
                     var userEmail = $(`<input type="text" class="input-text" value="${data.results[i].userEmail}" readonly />`);
                     var userNumber = $(`<input type="text" class="input-text" value="${data.results[i].userNumber}" readonly />`);
-                    var userLevel = $(`<input type="text" class="input-text" value="${data.results[i].userLevel}" readonly />`);
+                    var userLevel = $(`<select class="input-select"></select>`);
+                    userLevel.append('<option value=-1>请选择用户等级</option>');
+                    for (var j = 1; j <= data.maxUserLevel; j++) {
+                        var option = $(`<option value="${j}" ${data.results[i].userLevel == j ? 'selected' : ''}>${j}</option>`);
+                        userLevel.append(option);
+                    }
                     var studentCount = $(`<input type="text" class="input-text" value="${data.results[i].studentCount}" readonly />`);
                     var userPassWd = $(`<input type="text" class="input-text" value="" readonly />`);
                     var row = $(
@@ -969,28 +987,34 @@ $(document).ready(function() {
                             userTextChange(userId, listIndex, inputText, value);
                         }
                     })(data.results[i].userId, listIndex, 'userNumber'));
+                    row.find('select.input-select').eq(0).change((function(userId, listIndex, inputText) {
+                        return function() {
+                            var value = parseInt($(this).val());
+                            if (value >= 0) {
+                                userTextChange(userId, listIndex, inputText, value);
+                            }    
+                        }
+                    })(data.results[i].userId, listIndex, 'userLevel'));
                     row.find('input.input-text').eq(3).change((function(userId, listIndex, inputText) {
                         return function() {
                             var value = parseInt($(this).val());
                             userTextChange(userId, listIndex, inputText, value);
                         }
-                    })(data.results[i].userId, listIndex, 'userLevel'));
-                    row.find('input.input-text').eq(4).change((function(userId, listIndex, inputText) {
-                        return function() {
-                            var value = parseInt($(this).val());
-                            userTextChange(userId, listIndex, inputText, value);
-                        }
                     })(data.results[i].userId, listIndex, 'studentCount'));
-                    row.find('input.input-text').eq(5).change((function(userId, listIndex, inputText) {
+                    row.find('input.input-text').eq(4).change((function(userId, listIndex, inputText) {
                         return function() {
                             var value = $(this).val();
                             userTextChange(userId, listIndex, inputText, value);
                         }
                     })(data.results[i].userId, listIndex, 'userPassWd'));
                     row.find('input.input-text').prop('readonly', readonly);
+                    row.find('select.input-select').prop('disabled', readonly);
                     row.find('.btn-delete').click((function(userId, listIndex) {
                         return function() {
-                            alert('确定删除吗？')
+                            var result = confirm('确定删除吗？')
+                            if (!result) {
+                                return;
+                            }
                             var data = {
                                 userId: userId,
                                 listIndex: listIndex - 1,
@@ -1061,7 +1085,7 @@ $(document).ready(function() {
 
     }
 
-    function initSystemSet(){
+    function initSystemSet() {
         $('#add-type-btn').prop('disabled', true);
         var typeSwitch = $('#system-switch input[type="checkbox"]');
         typeSwitch.prop('checked', false);
@@ -1069,6 +1093,7 @@ $(document).ready(function() {
             var readonly = !$(this).prop('checked');
             $('#add-type-btn').prop('disabled', readonly);
             $('#user-level-input').prop('readonly', readonly);
+            $('.input-text').prop('readonly', readonly);
         });
         fetchSystemData();
     }
@@ -1112,7 +1137,10 @@ $(document).ready(function() {
                 row.find('input.input-text').prop('readonly', readonly);
                 row.find('.btn-delete').off('click').click((function(listIndex) {
                     return function() {
-                        alert('确定删除吗？');
+                        var result = confirm('确定删除吗？');
+                        if (!result) {
+                            return;
+                        }
                         $.ajax({
                             url: "/system/delete",
                             type: "DELETE",
@@ -1126,7 +1154,7 @@ $(document).ready(function() {
                                 },
                                 400: function(jqXHR) {
                                     var response = JSON.parse(jqXHR.responseText);
-                                    alert(response.usedSchool);
+                                    confirm(response.usedSchool);
                                 }
                             }
                         });
@@ -1169,6 +1197,16 @@ $(document).ready(function() {
 
     function enableSidebarButton(){
         $(".button-list-button").prop("disabled", false);
+    }
+
+    function flush() {
+        var result = confirm('确定清除缓存吗？');
+        if (!result) {
+            return;
+        }
+        $.get("/flush", function(response) {
+            $('#manage-country').click();
+        });
     }
 
     fetchCountryData();

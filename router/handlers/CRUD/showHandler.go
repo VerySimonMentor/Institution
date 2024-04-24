@@ -401,9 +401,12 @@ func ShowUserHandler(ctx *gin.Context) {
 		totalPage = len(userList)/pageShow.PageNum + 1
 	}
 
+	system := getSystemInRedis(ctx)
+
 	ctx.JSON(http.StatusOK, gin.H{
-		"results":   userList[start:end],
-		"totalPage": totalPage,
+		"results":      userList[start:end],
+		"totalPage":    totalPage,
+		"maxUserLevel": system.MaxUserLevel,
 	})
 }
 
