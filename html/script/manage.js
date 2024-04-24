@@ -8,6 +8,8 @@ var totalCountryPage;
 var totalSchoolPage;
 var totalItemPage;
 var totalUserPage;
+var buttonId = 'manage-country';
+var toggleSideBarTrigger = false;
 
 $(document).ready(function() {
     function fetchCountryData(page = currentCountryPage) {
@@ -214,24 +216,78 @@ $(document).ready(function() {
         });
     }
 
+    $("#manage-country-content").addClass('show-content');
+    $("#manage-school-content").removeClass('show-content');
+    $("#manage-school-content").addClass('hide-content');
+    $("#manage-item-content").removeClass('show-content');
+    $("#manage-item-content").addClass('hide-content');
+    $("#manage-user-content").removeClass('show-content');
+    $("#manage-user-content").addClass('hide-content');
+    $("#system-set-content").removeClass('show-content');
+    $("#system-set-content").addClass('hide-content');
+
+    $(document).ready(function() {
+        $('#toggle-sidebar').click(function() {
+            if (isSidebarHidden) {
+                $(this).text('显示侧边栏');
+            } else {
+                $(this).text('隐藏侧边栏');
+            }
+        });
+    });
+
+    $('#toggle-sidebar').click(function() {
+        if (toggleSideBarTrigger) {
+            $(this).text('<');
+        } else {
+            $(this).text('>');
+        }
+        $('.sidebar').toggle();
+        if(toggleSideBarTrigger){
+            $('#' + buttonId + '-content')
+                .removeClass('content-full')
+                .addClass('show-content');
+            toggleSideBarTrigger = false;
+        }else{
+            $('#' + buttonId + '-content')
+                .removeClass('show-content')
+                .addClass('content-full');
+            toggleSideBarTrigger = true;
+        }
+    });
+
     $(".button-list-button").click(function() {
         //侧边栏按钮section跳转
         //获取button id
-        var buttonId = $(this).attr("id");
+        buttonId = $(this).attr("id");
         //隐藏所有section
-        $("#manage-country-content").css("display", "none");
-        $("#manage-school-content").css("display", "none");
-        $("#manage-item-content").css("display", "none");
-        $("#manage-user-content").css("display", "none");
-        $("#system-set-content").css("display", "none");
+        // $("#manage-country-content").css("display", "none");
+        // $("#manage-school-content").css("display", "none");
+        // $("#manage-item-content").css("display", "none");
+        // $("#manage-user-content").css("display", "none");
+        // $("#system-set-content").css("display", "none");
+        // //根据button id显示对应的section
+        // $('#' + buttonId + '-content')
+        //     .css("display", "block")
+        //     .css({
+        //         "position": "absolute", // 使用绝对定位
+        //         "top": "80px", 
+        //         "left": "20vw",
+        //     });
+        $("#manage-country-content").removeClass('show-content');
+        $("#manage-country-content").addClass('hide-content');
+        $("#manage-school-content").removeClass('show-content');
+        $("#manage-school-content").addClass('hide-content');
+        $("#manage-item-content").removeClass('show-content');
+        $("#manage-item-content").addClass('hide-content');
+        $("#manage-user-content").removeClass('show-content');
+        $("#manage-user-content").addClass('hide-content');
+        $("#system-set-content").removeClass('show-content');
+        $("#system-set-content").addClass('hide-content');
         //根据button id显示对应的section
-        $('#' + buttonId + '-content') 
-            .css("display", "block")
-            .css({
-                "position": "absolute", // 使用绝对定位
-                "top": "80px", 
-                "left": "20vw",
-            });
+        $('#' + buttonId + '-content')
+            .removeClass('hide-content')
+            .addClass('show-content');
         switch (buttonId) {
             case 'manage-country':
                 fetchCountryData();
@@ -311,18 +367,6 @@ $(document).ready(function() {
         });
         return province;
     }
-
-    // $('#add-province-btn').click(function(){
-    //     var province = getProvinceData();
-    //     var maxProvinceId;
-    //     if (province.length == 0) {
-    //         maxProvinceId = 0;
-    //     } else {
-    //         maxProvinceId = province[province.length - 1].provinceId;
-    //     }
-    //     province.push({provinceId: maxProvinceId+1, chiName: "新省份", engName: "New Province"});
-    //     fetchProvinceData(province);
-    // })
 
     $('#cancel-province-btn').click(function(){
         enableSidebarButton();
