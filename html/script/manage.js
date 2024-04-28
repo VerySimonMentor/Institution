@@ -805,7 +805,7 @@ $(document).ready(function() {
                                 countryListIndex: countryListIndex - 1,
                                 schoolListIndex: schoolListIndex - 1,
                                 itemId: itemId,
-                                listIndex: listIndex - 1
+                                itemListIndex: listIndex - 1
                             }
                             $.ajax({
                                 url: '/item/delete',
