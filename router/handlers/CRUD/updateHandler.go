@@ -290,7 +290,7 @@ func UpdateItemHandler(ctx *gin.Context) {
 	switch updateItemForm.UpdateField {
 	case "itemName":
 		item.ItemName = updateValue
-	case "levelDescrption":
+	case "levelDescription":
 		item.LevelDescription = updateValue
 	case "itemRemark":
 		item.ItemRemark = updateValue

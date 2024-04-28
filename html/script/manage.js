@@ -94,13 +94,11 @@ $(document).ready(function() {
                     })(data.results[i].countryId, listIndex));
                     row.find('.btn-school').click((function(listIndex) {
                         return function() {
-                            $("#manage-country-content").css("display", "none");
-                            $("#manage-school-content").css("display", "block");
-                            $("#manage-school-content").css({
-                                "position": "absolute", // 使用绝对定位
-                                "top": "80px", 
-                                "left": "20vw" 
-                            });
+                            buttonId = 'manage-school';
+                            $("#manage-country-content").removeClass('show-content');
+                            $("#manage-country-content").addClass('hide-content');
+                            $("#manage-school-content").removeClass('hide-content');
+                            $("#manage-school-content").addClass('show-content');
                             initSchool(listIndex);
                         }
                     })(listIndex));
@@ -260,20 +258,7 @@ $(document).ready(function() {
         //侧边栏按钮section跳转
         //获取button id
         buttonId = $(this).attr("id");
-        //隐藏所有section
-        // $("#manage-country-content").css("display", "none");
-        // $("#manage-school-content").css("display", "none");
-        // $("#manage-item-content").css("display", "none");
-        // $("#manage-user-content").css("display", "none");
-        // $("#system-set-content").css("display", "none");
-        // //根据button id显示对应的section
-        // $('#' + buttonId + '-content')
-        //     .css("display", "block")
-        //     .css({
-        //         "position": "absolute", // 使用绝对定位
-        //         "top": "80px", 
-        //         "left": "20vw",
-        //     });
+
         $("#manage-country-content").removeClass('show-content');
         $("#manage-country-content").addClass('hide-content');
         $("#manage-school-content").removeClass('show-content');
@@ -553,13 +538,11 @@ $(document).ready(function() {
                     var countryListIndex = $('#school-page-country-select').val();
                     row.find('.btn-item').click((function(schoolListIndex, countryListIndex) {
                         return function() {
-                            $("#manage-school-content").css("display", "none");
-                            $("#manage-item-content").css("display", "block");
-                            $("#manage-item-content").css({
-                                "position": "absolute", // 使用绝对定位
-                                "top": "80px", 
-                                "left": "20vw" 
-                            });
+                            buttonId = 'manage-item';
+                            $("#manage-school-content").removeClass('show-content');
+                            $("#manage-school-content").addClass('hide-content');
+                            $("#manage-item-content").removeClass('hide-content');
+                            $("#manage-item-content").addClass('show-content');
                             initItem(countryListIndex, schoolListIndex);
                         }
                     })(listIndex, countryListIndex));
@@ -892,7 +875,7 @@ $(document).ready(function() {
                 countryListIndex: countryListIndex-1,
                 schoolListIndex: schoolListIndex-1,
                 itemId: itemId,
-                listIndex: listIndex - 1,
+                itemListIndex: listIndex - 1,
                 updateField: field,
                 updateValue: value
             }),
