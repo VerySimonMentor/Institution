@@ -689,13 +689,19 @@ $(document).ready(function() {
                     var itemName = $(`<input type="text" class="input-text" value="${item[i].itemName}" />`);
                     var levelDescription = $(`<input type="text" class="input-text" value="${item[i].levelDescription}" />`);
                     var itemRemark = $(`<input type="text" class="input-text" value="${item[i].itemRemark}" />`);
+                    var levelRateLen = 0;
+                    if (!item[i].levelRate) {
+                        levelRateLen = 0;
+                    }else{
+                        levelRateLen = item[i].levelRate.length;
+                    }
                     var row = $(
                         `<tr>
                             <td>${listIndex}</td>
                             <td>${itemName.prop('outerHTML')}</td>
                             <td>${levelDescription.prop('outerHTML')}</td>
                             <td>${itemRemark.prop('outerHTML')}</td>
-                            <td>${item[i].levelRate.length}</td>
+                            <td>${levelRateLen}</td>
                             <td>
                                 <a href=# class="btn btn-item-edit">编辑</a>
                                 <a href=# class="btn btn-item-delete">删除</a>
