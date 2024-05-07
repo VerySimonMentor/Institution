@@ -11,6 +11,9 @@ var totalUserPage;
 var buttonId = 'manage-country';
 var toggleSideBarTrigger = false;
 
+var itemIsSelected = false;
+var itemSelected;
+
 $(document).ready(function() {
     function fetchCountryData(page = currentCountryPage) {
         var data = {
@@ -608,17 +611,20 @@ $(document).ready(function() {
     }
 
     function initItem(countrylistIndex = 0, schoolListIndex = 0){
+        itemIsSelected = false;
         $.ajax({
             url: '/school/initPage',
             type: 'GET',
             success: function(data) {
                 $('#item-table tbody').empty();
                 $('#add-item-btn').prop('disabled', true);
+                $('#paste-item-btn').prop('disabled', true);
                 var itemSwitch = $('#item-switch input[type="checkbox"]');
                 itemSwitch.prop('checked', false);
                 itemSwitch.change(function() {
                     var readonly = !$(this).prop('checked');
                     $('#add-item-btn').prop('disabled', readonly);
+                    $('#paste-item-btn').prop('disabled', readonly || !itemIsSelected);
                     $('.input-text').prop('readonly', readonly);
                     $('.input-select').prop('disabled', readonly);
                 });
@@ -705,6 +711,7 @@ $(document).ready(function() {
                             <td>
                                 <a href=# class="btn btn-item-edit">编辑</a>
                                 <a href=# class="btn btn-item-delete">删除</a>
+                                <a href=# class="btn btn-item-copy">复制</a>
                             </td>
                         </tr>`
                     );
@@ -826,6 +833,16 @@ $(document).ready(function() {
                             });
                         }
                     })(item[i].itemId, listIndex));
+
+                    row.find('.btn-item-copy').click((function(item) {
+                        return function(){
+                            itemIsSelected = true;
+                            itemSelected = item;
+                            var readonly = !$('#item-switch input[type="checkbox"]').prop('checked');
+                            $('#paste-item-btn').prop('disabled', readonly || !itemIsSelected);
+                            alert('已复制');
+                        }
+                    })(item[i]));
                 }
 
                 $('#item-pagination').empty();
@@ -861,6 +878,35 @@ $(document).ready(function() {
                 countryListIndex: countryListIndex - 1,
                 schoolListIndex: schoolListIndex - 1,
                 pageNum: pageNum,
+            }),
+            success: function(data) {
+                fetchItemData(schoolListIndex, data.totalPage);
+            }
+        });
+    });
+
+    $('#paste-item-btn').click(function() {
+        var item = itemSelected;
+        var countryListIndex = $('#item-page-country-select').val();
+        var schoolListIndex = $('#item-page-school-select').val();
+        if (currentItemPage != totalItemPage) {
+            currentItemPage = totalItemPage;
+            fetchItemData(schoolListIndex, currentItemPage);
+        }
+        $.ajax({
+            url: 'item/paste',
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            data: JSON.stringify({
+                countryListIndex: countryListIndex - 1,
+                schoolListIndex: schoolListIndex - 1,
+                pageNum: pageNum,
+                itemName: item.itemName,
+                levelDescription: item.levelDescription,
+                itemRemark: item.itemRemark,
+                levelRate: item.levelRate,
             }),
             success: function(data) {
                 fetchItemData(schoolListIndex, data.totalPage);

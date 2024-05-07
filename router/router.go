@@ -49,6 +49,7 @@ func RouterInit(config *config.Config, rootPath string) *gin.Engine {
 	ginRouter.POST("/school/change", crud.UpdateSchoolHandler)
 	ginRouter.POST("/school/editItem", crud.ShowItemHandler)
 	ginRouter.POST("/item/create", crud.CreateItemHandler)
+	ginRouter.POST("/item/paste", crud.PasteItemHandler)
 	ginRouter.POST("/item/change", crud.UpdateItemHandler)
 	ginRouter.POST("/item/changeProportion/show", crud.ShowLevelHandler)
 	ginRouter.POST("/item/changeProportion/save", crud.UpdateLevelHandler)
