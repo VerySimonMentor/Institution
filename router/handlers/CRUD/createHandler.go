@@ -163,6 +163,7 @@ type CreateItemForm struct {
 	CountryListIndex int64 `json:"countryListIndex"`
 	SchoolListIndex  int64 `json:"schoolListIndex"`
 	PageNum          int   `json:"pageNum"`
+	Item
 }
 
 func CreateItemHandler(ctx *gin.Context) {
@@ -240,6 +241,104 @@ func CreateItemHandler(ctx *gin.Context) {
 		totalPage = itemNum / createItemForm.PageNum
 	} else {
 		totalPage = itemNum/createItemForm.PageNum + 1
+	}
+
+	go func(school School) {
+		schoolAndItem, _ := json.Marshal(school.SchoolAndItem)
+		mysqlClient := mysql.GetClient()
+		err := mysqlClient.Model(&mysql.SchoolSQL{}).Where("schoolId = ?", school.SchoolId).Update("schoolAndItem", schoolAndItem).Error
+		if err != nil {
+			logs.GetInstance().Logger.Errorf("CreateItemHandler error %s", err)
+		}
+	}(school)
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"msg":       "创建成功",
+		"itemId":    itemSQL.ItemId,
+		"totalPage": totalPage,
+	})
+}
+
+func PasteItemHandler(ctx *gin.Context) {
+	var pasteItemForm CreateItemForm
+	if err := ctx.ShouldBindJSON(&pasteItemForm); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"err": "参数错误"})
+		logs.GetInstance().Logger.Errorf("PasteItemHandler error %s", err)
+		return
+	}
+	if pasteItemForm.CountryListIndex < 0 || pasteItemForm.SchoolListIndex < 0 {
+		ctx.JSON(http.StatusBadRequest, gin.H{"err": "参数错误"})
+		return
+	}
+	mysqlClient := mysql.GetClient()
+	redisClient := redis.GetClient()
+
+	itemRateString, _ := json.Marshal(pasteItemForm.LevelRate)
+	itemSQL := mysql.ItemSQL{
+		ItemName:         pasteItemForm.ItemName,
+		LevelDescription: pasteItemForm.LevelDescription,
+		LevelRate:        itemRateString,
+		ItemRemark:       pasteItemForm.ItemRemark,
+	}
+
+	if err := mysqlClient.Create(&itemSQL).Error; err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "创建失败"})
+		logs.GetInstance().Logger.Errorf("CreateItemHandler error %s", err)
+		return
+	}
+	if err := mysqlClient.Last(&itemSQL).Error; err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "创建失败"})
+		logs.GetInstance().Logger.Errorf("CreateItemHandler error %s", err)
+		return
+	}
+
+	var levelRate []Level
+	json.Unmarshal(itemSQL.LevelRate, &levelRate)
+
+	itemByte, _ := json.Marshal(Item{
+		ItemId:           itemSQL.ItemId,
+		ItemName:         itemSQL.ItemName,
+		LevelDescription: itemSQL.LevelDescription,
+		LevelRate:        levelRate,
+		ItemRemark:       itemSQL.ItemRemark,
+	})
+	countryString, err := redisClient.LIndex(context.Background(), "country", pasteItemForm.CountryListIndex).Result()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis查询失败"})
+		logs.GetInstance().Logger.Errorf("CreateItemHandler error %s", err)
+		return
+	}
+	var country Country
+	if err := json.Unmarshal([]byte(countryString), &country); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "json转换失败"})
+		logs.GetInstance().Logger.Errorf("CreateItemHandler error %s", err)
+		return
+	}
+	schoolKey := fmt.Sprintf(SchoolKey, country.CountryId)
+	schoolString, err := redisClient.LIndex(context.Background(), schoolKey, pasteItemForm.SchoolListIndex).Result()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "redis查询失败"})
+		logs.GetInstance().Logger.Errorf("CreateItemHandler error %s", err)
+		return
+	}
+	var school School
+	if err := json.Unmarshal([]byte(schoolString), &school); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "json转换失败"})
+		logs.GetInstance().Logger.Errorf("CreateItemHandler error %s", err)
+		return
+	}
+	school.SchoolAndItem = append(school.SchoolAndItem, itemSQL.ItemId)
+	schoolByte, _ := json.Marshal(school)
+	redisClient.LSet(context.Background(), schoolKey, pasteItemForm.SchoolListIndex, schoolByte)
+
+	itemKey := fmt.Sprintf(ItemKey, country.CountryId, school.SchoolId)
+	redisClient.RPush(context.Background(), itemKey, itemByte)
+	itemNum := int(redisClient.LLen(context.Background(), itemKey).Val())
+	var totalPage int
+	if itemNum%pasteItemForm.PageNum == 0 {
+		totalPage = itemNum / pasteItemForm.PageNum
+	} else {
+		totalPage = itemNum/pasteItemForm.PageNum + 1
 	}
 
 	go func(school School) {
