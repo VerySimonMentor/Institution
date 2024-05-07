@@ -236,7 +236,7 @@ func getItemInRedis(ctx *gin.Context, itemKey string, schoolAndItem []int) []Ite
 
 		itemList := make([]Item, len(itemListSQL))
 		for i, item := range itemListSQL {
-			var levelRate []Level
+			levelRate := make([]Level, 0)
 			json.Unmarshal(item.LevelRate, &levelRate)
 			itemList[i] = Item{
 				ItemId:           item.ItemId,
