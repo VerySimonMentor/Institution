@@ -12,6 +12,7 @@ type Config struct {
 	MySQL  MySQLConfig  `yaml:"mysql"`
 	Server ServerConfig `yaml:"server"`
 	Admin  AdminConfig  `yaml:"admin"`
+	Wx     WxConfig     `yaml:"wx"`
 }
 
 type RedisConfig struct {
@@ -34,6 +35,12 @@ type ServerConfig struct {
 type AdminConfig struct {
 	Username string `yaml:"username"`
 	Password string `yaml:"password"`
+}
+
+type WxConfig struct {
+	Appid      string `yaml:"appid"`
+	Secret     string `yaml:"secret"`
+	Grant_type string `yaml:"grant_type"`
 }
 
 // 初始化配置

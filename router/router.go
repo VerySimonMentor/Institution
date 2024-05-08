@@ -5,6 +5,7 @@ import (
 	"Institution/router/handlers"
 	crud "Institution/router/handlers/CRUD"
 	"Institution/router/handlers/user"
+	"Institution/router/handlers/wx"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -27,6 +28,12 @@ func RouterInit(config *config.Config, rootPath string) *gin.Engine {
 	ginRouter.POST("/login", func(ctx *gin.Context) {
 		user.LoginHandler(ctx, &config.Admin)
 	})
+
+	ginRouter.GET("/wx/login", func(ctx *gin.Context) {
+		wx.FastLoginHandler(ctx, &config.Wx)
+	})
+	ginRouter.POST("/wx/login", wx.LoginHandler)
+
 	ginRouter.Use(CookieVerify())
 
 	ginRouter.GET("/manage", func(ctx *gin.Context) {
