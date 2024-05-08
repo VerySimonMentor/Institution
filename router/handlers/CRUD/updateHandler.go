@@ -4,13 +4,14 @@ import (
 	"Institution/logs"
 	"Institution/mysql"
 	"Institution/redis"
+	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cast"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type UpdateCountryForm struct {
@@ -435,14 +436,11 @@ func UpdateUserHandler(ctx *gin.Context) {
 	case "userAccount":
 		user.UserAccount = updateUserForm.UpdateValue.(string)
 	case "userPassWd":
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(updateUserForm.UpdateValue.(string)), bcrypt.DefaultCost)
-		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"err": "密码加密失败"})
-			logs.GetInstance().Logger.Errorf("UpdateUserHandler error %s", err)
-			return
-		}
-		user.UserPassWd = string(hashedPassword)
-		updateUserForm.UpdateValue = string(hashedPassword)
+		md5Hash := md5.Sum([]byte(updateUserForm.UpdateValue.(string)))
+		hashedPassword := hex.EncodeToString(md5Hash[:])
+
+		user.UserPassWd = hashedPassword
+		updateUserForm.UpdateValue = hashedPassword
 	case "userEmail":
 		user.UserEmail = updateUserForm.UpdateValue.(string)
 	case "userNumber":
