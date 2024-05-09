@@ -71,7 +71,7 @@ func GetPhoneNumber(code string, wxConfig *config.WxConfig) string {
 	var phoneResp PhoneNumberResp
 	json.Unmarshal(body, &phoneResp)
 	logs.GetInstance().Logger.Infof("phone number %+v", phoneResp)
-	if phoneResp.ErrCode == 40001 {
+	if phoneResp.ErrCode != 0 {
 		redisClient := redis.GetClient()
 		redisClient.Del(context.Background(), tokenKey)
 		accessToken = GetAccessToken(wxConfig)
