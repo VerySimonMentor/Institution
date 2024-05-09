@@ -365,6 +365,8 @@ $(document).ready(function() {
 
     function initSchool(listIndex = 0) {
         $('#school-table').css('width', '1600px');
+	$('#school-pagination').empty();
+	console.log( $('#school-pagination'));
         $.ajax({
             url: '/school/initPage',
             type: 'GET',
@@ -381,6 +383,7 @@ $(document).ready(function() {
                 var allCountry = data.results;
                 var countrySelect = $('#school-page-country-select');
                 countrySelect.empty();
+		$('#school-pagination').empty();
                 countrySelect.append('<option value="0">请选择国家</option>');
                 for (var i = 0; i < allCountry.length; i++) {
                     var option = $(`<option value="${i+1}">${allCountry[i]}</option>`);
@@ -392,7 +395,6 @@ $(document).ready(function() {
                         fetchSchoolData(listIndex);
                     } else {
                         $('#school-table tbody').empty();
-                        $('#school-pagination').empty();
                     }
                 });
                 countrySelect.val(listIndex).trigger('change');
