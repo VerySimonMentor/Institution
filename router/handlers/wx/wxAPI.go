@@ -56,10 +56,6 @@ type PhoneInfo struct {
 
 func GetPhoneNumber(code string, wxConfig *config.WxConfig) string {
 	accessToken := GetAccessToken(wxConfig)
-	if accessToken == "" {
-		logs.GetInstance().Logger.Errorf("get access token error")
-		return ""
-	}
 
 	requestJSON, _ := json.Marshal(map[string]string{
 		"code": code,
