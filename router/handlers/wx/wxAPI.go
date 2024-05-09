@@ -31,6 +31,7 @@ func GetAccessToken(wxConfig *config.WxConfig) string {
 		body, _ := io.ReadAll(resp.Body)
 		var token AccessToken
 		json.Unmarshal(body, &token)
+		logs.GetInstance().Logger.Infof("token %+v", token)
 
 		accessToken = token.AccessToken
 		redisClient.Set(context.Background(), tokenKey, accessToken, 7200*time.Second)
@@ -73,6 +74,7 @@ func GetPhoneNumber(code string, wxConfig *config.WxConfig) string {
 	body, _ := io.ReadAll(resp.Body)
 	var phoneResp PhoneNumberResp
 	json.Unmarshal(body, &phoneResp)
+	logs.GetInstance().Logger.Infof("phone number %+v", phoneResp)
 	if phoneResp.ErrCode == 40001 {
 		redisClient := redis.GetClient()
 		redisClient.Del(context.Background(), tokenKey)
@@ -90,6 +92,7 @@ func GetPhoneNumber(code string, wxConfig *config.WxConfig) string {
 
 		body, _ = io.ReadAll(resp.Body)
 		json.Unmarshal(body, &phoneResp)
+		logs.GetInstance().Logger.Infof("phone number %+v", phoneResp)
 	}
 
 	if phoneResp.PhoneInfo.CountryCode == 86 {
