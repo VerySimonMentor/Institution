@@ -392,6 +392,7 @@ $(document).ready(function() {
                         fetchSchoolData(listIndex);
                     } else {
                         $('#school-table tbody').empty();
+                        $('#school-pagination').empty();
                     }
                 });
                 countrySelect.val(listIndex).trigger('change');
