@@ -56,6 +56,7 @@ type PhoneInfo struct {
 func GetPhoneNumber(code string, wxConfig *config.WxConfig) string {
 	accessToken := GetAccessToken(wxConfig)
 	if accessToken == "" {
+		logs.GetInstance().Logger.Errorf("get access token error")
 		return ""
 	}
 
@@ -77,6 +78,7 @@ func GetPhoneNumber(code string, wxConfig *config.WxConfig) string {
 		redisClient.Del(context.Background(), tokenKey)
 		accessToken = GetAccessToken(wxConfig)
 		if accessToken == "" {
+			logs.GetInstance().Logger.Errorf("get access token error")
 			return ""
 		}
 		resp, err = http.Post("https://api.weixin.qq.com/wxa/business/getuserphonenumber?access_token="+accessToken, "application/json", bytes.NewBuffer(requestJSON))
