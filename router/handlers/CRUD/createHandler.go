@@ -370,7 +370,7 @@ func CreateUserHandler(ctx *gin.Context) {
 		UserAccount:  "default",
 		UserPassWd:   "",
 		UserEmail:    "",
-		UserNumber:   "00000000000",
+		UserNumber:   "",
 		UserLevel:    0,
 		StudentCount: 0,
 	}
