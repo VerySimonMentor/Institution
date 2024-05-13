@@ -29,10 +29,19 @@ func RouterInit(config *config.Config, rootPath string) *gin.Engine {
 		user.LoginHandler(ctx, &config.Admin)
 	})
 
-	ginRouter.GET("/wx/login", func(ctx *gin.Context) {
-		wx.FastLoginHandler(ctx, &config.Wx)
-	})
-	ginRouter.POST("/wx/login", wx.LoginHandler)
+	wxRouter := ginRouter.Group("/wx")
+	{
+		wxRouter.GET("/login", func(ctx *gin.Context) {
+			wx.FastLoginHandler(ctx, &config.Wx)
+		})
+		wxRouter.GET("/checkTocken", func(ctx *gin.Context) {
+			wx.CheckLoginTockenHandler(ctx, &config.Wx)
+		})
+
+		wxRouter.POST("/login", func(ctx *gin.Context) {
+			wx.FastLoginHandler(ctx, &config.Wx)
+		})
+	}
 
 	ginRouter.Use(CookieVerify())
 
