@@ -76,7 +76,8 @@ func FastLoginHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 		loginState = 2
 	}
 	ctx.JSON(http.StatusOK, gin.H{
-		"loginState": loginState,
+		"loginState":  loginState,
+		"loginTocken": string(loginTocken[:]),
 	})
 }
 
@@ -129,7 +130,8 @@ func LoginHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 		loginState = 2
 	}
 	ctx.JSON(http.StatusOK, gin.H{
-		"loginState": loginState,
+		"loginState":  loginState,
+		"loginTocken": string(loginTocken[:]),
 	})
 }
 
