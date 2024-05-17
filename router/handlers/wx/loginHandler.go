@@ -7,7 +7,8 @@ import (
 	"Institution/redis"
 	"Institution/router/handlers/CRUD"
 	"context"
-	"crypto/sha256"
+	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -24,7 +25,8 @@ func FastLoginHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 		logs.GetInstance().Logger.Errorf("get session key error")
 		ctx.JSON(http.StatusBadRequest, gin.H{})
 	}
-	loginTocken := sha256.Sum256([]byte(sessionKey))
+	md5Hash := md5.Sum([]byte(sessionKey))
+	loginTocken := hex.EncodeToString(md5Hash[:])
 	redisClient := redis.GetClient()
 
 	code := ctx.Query("code")
@@ -34,7 +36,7 @@ func FastLoginHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 		ctx.JSON(http.StatusBadRequest, gin.H{})
 	}
 
-	redisClient.Set(context.Background(), string(loginTocken[:]), phoneNumber, loginTockenExpireTime*time.Hour*24)
+	redisClient.Set(context.Background(), loginTocken, phoneNumber, loginTockenExpireTime*time.Hour*24)
 
 	mysqlClient := mysql.GetClient()
 	var userSQL mysql.UserSQL
@@ -77,7 +79,7 @@ func FastLoginHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 	}
 	ctx.JSON(http.StatusOK, gin.H{
 		"loginState":  loginState,
-		"loginTocken": string(loginTocken[:]),
+		"loginTocken": loginTocken,
 	})
 }
 
@@ -119,9 +121,10 @@ func LoginHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 		ctx.JSON(http.StatusBadRequest, gin.H{})
 		return
 	}
-	loginTocken := sha256.Sum256([]byte(sessionKey))
+	md5Hash := md5.Sum([]byte(sessionKey))
+	loginTocken := hex.EncodeToString(md5Hash[:])
 	redisClient := redis.GetClient()
-	redisClient.Set(context.Background(), string(loginTocken[:]), loginForm.PhoneNumber, loginTockenExpireTime*time.Hour*24)
+	redisClient.Set(context.Background(), loginTocken, loginForm.PhoneNumber, loginTockenExpireTime*time.Hour*24)
 
 	var loginState int
 	if user.UserLevel == 0 {
@@ -131,7 +134,7 @@ func LoginHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 	}
 	ctx.JSON(http.StatusOK, gin.H{
 		"loginState":  loginState,
-		"loginTocken": string(loginTocken[:]),
+		"loginTocken": loginTocken,
 	})
 }
 
