@@ -39,7 +39,7 @@ func RouterInit(config *config.Config, rootPath string) *gin.Engine {
 		})
 
 		wxRouter.POST("/login", func(ctx *gin.Context) {
-			wx.FastLoginHandler(ctx, &config.Wx)
+			wx.LoginHandler(ctx, &config.Wx)
 		})
 	}
 

@@ -136,12 +136,31 @@ func LoginHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 func CheckLoginTockenHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 	loginTocken := ctx.Query("loginTocken")
 	if CheckLoginTocken(wxConfig, loginTocken) {
+		redisClien := redis.GetClient()
+		phone, err := redisClien.Get(context.Background(), loginTocken).Result()
+		if err != nil {
+			logs.GetInstance().Logger.Errorf("get phone number error %s", err)
+			ctx.JSON(http.StatusBadRequest, gin.H{})
+			return
+		}
+
+		mysqlClient := mysql.GetClient()
+		var user mysql.UserSQL
+		mysqlClient.Where("userNumber = ?", phone).First(&user)
+		var loginState int
+		if user.UserLevel == 0 {
+			loginState = 1
+		} else {
+			loginState = 2
+		}
 		ctx.JSON(http.StatusOK, gin.H{
-			"state": true,
+			"state":      true,
+			"loginState": loginState,
 		})
 	} else {
 		ctx.JSON(http.StatusOK, gin.H{
-			"state": false,
+			"state":      false,
+			"loginState": 0,
 		})
 	}
 }
