@@ -141,17 +141,22 @@ func code2Session(wxConfig *config.WxConfig, code string) string {
 	return session.SessionKey
 }
 
-func CheckLoginTocken(wxConfig *config.WxConfig, loginTocken string) bool {
+func CheckLoginTocken(wxConfig *config.WxConfig, loginTocken string) (bool, string) {
 	redisClient := redis.GetClient()
 	exists, err := redisClient.Exists(context.Background(), loginTocken).Result()
 	if err != nil {
 		logs.GetInstance().Logger.Errorf("check session key error %s", err)
-		return false
+		return false, ""
 	}
 
 	if exists == 0 {
-		return false
+		return false, ""
+	}
+	phoneNumber, err := redisClient.Get(context.Background(), loginTocken).Result()
+	if err != nil {
+		logs.GetInstance().Logger.Errorf("get phone number error %s", err)
+		return false, ""
 	}
 
-	return true
+	return true, phoneNumber
 }
