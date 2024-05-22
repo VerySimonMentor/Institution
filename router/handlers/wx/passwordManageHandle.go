@@ -6,8 +6,6 @@ import (
 	"Institution/mysql"
 	"Institution/redis"
 	"context"
-	"crypto/md5"
-	"encoding/hex"
 	"encoding/json"
 	"net/http"
 
@@ -101,9 +99,6 @@ func NewPasswordHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 }
 
 func updatePassword(ctx *gin.Context, newPassword, phoneNumber string) {
-	md5Hash := md5.Sum([]byte(newPassword))
-	hashedPassword := hex.EncodeToString(md5Hash[:])
-
 	redisClient := redis.GetClient()
 	allUsers, err := redisClient.LRange(context.Background(), "user", 0, -1).Result()
 	if err != nil {
@@ -116,15 +111,15 @@ func updatePassword(ctx *gin.Context, newPassword, phoneNumber string) {
 		var userSQL mysql.UserSQL
 		json.Unmarshal([]byte(user), &userSQL)
 		if userSQL.UserNumber == phoneNumber {
-			userSQL.UserPassWd = hashedPassword
+			userSQL.UserPassWd = newPassword
 			userByte, _ := json.Marshal(userSQL)
 			redisClient.LSet(context.Background(), "user", int64(i), userByte)
 			break
 		}
 	}
 
-	go func(hashedPassword string) {
+	go func(newPassword string) {
 		mysqlClient := mysql.GetClient()
-		mysqlClient.Model(&mysql.UserSQL{}).Where("userNumber = ?", phoneNumber).Update("userPassWd", hashedPassword)
-	}(hashedPassword)
+		mysqlClient.Model(&mysql.UserSQL{}).Where("userNumber = ?", phoneNumber).Update("userPassWd", newPassword)
+	}(newPassword)
 }
