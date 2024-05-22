@@ -25,15 +25,15 @@ func CheckPasswordHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 	mysqlClient := mysql.GetClient()
 	var user mysql.UserSQL
 	mysqlClient.Where("userNumber = ?", phoneNumber).First(&user)
-	var noPassWord bool
+	var noPassword bool
 	if user.UserPassWd == "" {
-		noPassWord = true
+		noPassword = true
 	} else {
-		noPassWord = false
+		noPassword = false
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"noPassWord":  noPassWord,
+		"noPassword":  noPassword,
 		"phoneNumber": phoneNumber,
 	})
 }
