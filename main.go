@@ -27,5 +27,5 @@ func main() {
 	mysql.MysqlInit(config.MySQL)
 	ginRouter := router.RouterInit(config, rootPath)
 
-	ginRouter.RunTLS(fmt.Sprintf(":%d", config.Server.Port), rootPath+"/ssl/spark.verysimon.com.crt", rootPath+"/ssl/spark.verysimon.com.key")
+	ginRouter.RunTLS(fmt.Sprintf(":%d", config.Server.Port), rootPath+"/ssl/root_bundle.crt", rootPath+"/ssl/spark.verysimon.com.key")
 }
