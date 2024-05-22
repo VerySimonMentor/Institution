@@ -47,6 +47,9 @@ func RouterInit(config *config.Config, rootPath string) *gin.Engine {
 		wxRouter.POST("/initPassword", func(ctx *gin.Context) {
 			wx.InitPasswordHandler(ctx, &config.Wx)
 		})
+		wxRouter.POST("/newPassword", func(ctx *gin.Context) {
+			wx.NewPasswordHandler(ctx, &config.Wx)
+		})
 	}
 
 	ginRouter.Use(CookieVerify())
