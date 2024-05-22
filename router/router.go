@@ -37,9 +37,15 @@ func RouterInit(config *config.Config, rootPath string) *gin.Engine {
 		wxRouter.GET("/checkTocken", func(ctx *gin.Context) {
 			wx.CheckLoginTockenHandler(ctx, &config.Wx)
 		})
+		wxRouter.GET("/checkPassword", func(ctx *gin.Context) {
+			wx.CheckPasswordHandler(ctx, &config.Wx)
+		})
 
 		wxRouter.POST("/login", func(ctx *gin.Context) {
 			wx.LoginHandler(ctx, &config.Wx)
+		})
+		wxRouter.POST("/initPassword", func(ctx *gin.Context) {
+			wx.InitPasswordHandler(ctx, &config.Wx)
 		})
 	}
 
