@@ -40,7 +40,7 @@ func pageRange(page, pageNum, countryNum int) (int, int) {
 	return start, end
 }
 
-func getCountryInRedis(ctx *gin.Context) []Country {
+func GetCountryInRedis(ctx *gin.Context) []Country {
 	redisClient := redis.GetClient()
 	mysqlClient := mysql.GetClient()
 
@@ -124,7 +124,7 @@ func checkCountryInRedis(ctx *gin.Context) bool {
 	return true
 }
 
-func getSchoolInRedis(ctx *gin.Context, schoolKey string, countryAndSchool []int) []School {
+func GetSchoolInRedis(ctx *gin.Context, schoolKey string, countryAndSchool []int) []School {
 	redisClient := redis.GetClient()
 	mysqlClient := mysql.GetClient()
 
@@ -215,7 +215,7 @@ func checkSchoolInRedis(ctx *gin.Context, schoolKey string) bool {
 	return true
 }
 
-func getItemInRedis(ctx *gin.Context, itemKey string, schoolAndItem []int) []Item {
+func GetItemInRedis(ctx *gin.Context, itemKey string, schoolAndItem []int) []Item {
 	redisClient := redis.GetClient()
 	mysqlClient := mysql.GetClient()
 
@@ -302,7 +302,7 @@ func checkItemInRedis(ctx *gin.Context, itemKey string) bool {
 	return true
 }
 
-func getSystemInRedis(ctx *gin.Context) System {
+func GetSystemInRedis(ctx *gin.Context) System {
 	redisClient := redis.GetClient()
 
 	if !checkSystemInRedis(ctx) {

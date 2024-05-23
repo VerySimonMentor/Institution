@@ -263,12 +263,12 @@ func DeleteSystemHandler(ctx *gin.Context) {
 
 	usedSchool := make([]string, 0)
 	listIndex := deleteSystemForm.ListIndex
-	system := getSystemInRedis(ctx)
+	system := GetSystemInRedis(ctx)
 	currentSchoolTypeId := system.SchoolTypeList[listIndex].SchoolTypeId
-	country := getCountryInRedis(ctx)
+	country := GetCountryInRedis(ctx)
 	for _, c := range country {
 		schoolKey := fmt.Sprintf(SchoolKey, c.CountryId)
-		school := getSchoolInRedis(ctx, schoolKey, c.CountryAndSchool)
+		school := GetSchoolInRedis(ctx, schoolKey, c.CountryAndSchool)
 		for _, s := range school {
 			if s.SchoolType == currentSchoolTypeId {
 				usedSchool = append(usedSchool, fmt.Sprintf(DeleteTypeResp, c.CountryChiName, s.SchoolChiName))

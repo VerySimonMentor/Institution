@@ -6,6 +6,7 @@ import (
 	"Institution/mysql"
 	"Institution/redis"
 	"Institution/router/handlers/CRUD"
+	"Institution/router/handlers/wx"
 	"context"
 	"crypto/md5"
 	"encoding/hex"
@@ -20,7 +21,7 @@ import (
 
 func FastLoginHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 	loginCode := ctx.Query("loginCode")
-	sessionKey := code2Session(wxConfig, loginCode)
+	sessionKey := wx.Code2Session(wxConfig, loginCode)
 	if sessionKey == "" {
 		logs.GetInstance().Logger.Errorf("get session key error")
 		ctx.JSON(http.StatusBadRequest, gin.H{})
@@ -30,13 +31,13 @@ func FastLoginHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 	redisClient := redis.GetClient()
 
 	code := ctx.Query("code")
-	phoneNumber := GetPhoneNumber(code, wxConfig)
+	phoneNumber := wx.GetPhoneNumber(code, wxConfig)
 	if phoneNumber == "" {
 		logs.GetInstance().Logger.Errorf("get phone number error")
 		ctx.JSON(http.StatusBadRequest, gin.H{})
 	}
 
-	redisClient.Set(context.Background(), loginTocken, phoneNumber, loginTockenExpireTime*time.Hour*24)
+	redisClient.Set(context.Background(), loginTocken, phoneNumber, wx.LoginTockenExpireTime*time.Hour*24)
 
 	mysqlClient := mysql.GetClient()
 	var userSQL mysql.UserSQL
@@ -115,7 +116,7 @@ func LoginHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 		return
 	}
 
-	sessionKey := code2Session(wxConfig, loginForm.LoginCode)
+	sessionKey := wx.Code2Session(wxConfig, loginForm.LoginCode)
 	if sessionKey == "" {
 		logs.GetInstance().Logger.Errorf("get session key error")
 		ctx.JSON(http.StatusBadRequest, gin.H{})
@@ -124,7 +125,7 @@ func LoginHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 	md5Hash := md5.Sum([]byte(sessionKey))
 	loginTocken := hex.EncodeToString(md5Hash[:])
 	redisClient := redis.GetClient()
-	redisClient.Set(context.Background(), loginTocken, loginForm.PhoneNumber, loginTockenExpireTime*time.Hour*24)
+	redisClient.Set(context.Background(), loginTocken, loginForm.PhoneNumber, wx.LoginTockenExpireTime*time.Hour*24)
 
 	var loginState int
 	if user.UserLevel == 0 {
@@ -141,7 +142,7 @@ func LoginHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 func CheckLoginTockenHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 	loginTocken := ctx.Query("loginTocken")
 
-	check, phoneNumber := CheckLoginTocken(wxConfig, loginTocken)
+	check, phoneNumber := wx.CheckLoginTocken(wxConfig, loginTocken)
 	if check {
 
 		mysqlClient := mysql.GetClient()

@@ -1,6 +1,6 @@
 package wx
 
 const (
-	accessTokenKey        = "wx-access-token"
-	loginTockenExpireTime = 14
+	AccessTokenKey        = "wx-access-token"
+	LoginTockenExpireTime = 14
 )

@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sort"
 
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cast"
@@ -372,6 +373,9 @@ func UpdateLevelHandler(ctx *gin.Context) {
 		return
 	}
 
+	sort.Slice(updateLevelForm.LevelRate, func(i, j int) bool {
+		return updateLevelForm.LevelRate[i].LevelId < updateLevelForm.LevelRate[j].LevelId
+	})
 	item.ItemName = updateLevelForm.ItemName
 	item.LevelDescription = updateLevelForm.LevelDescription
 	item.LevelRate = updateLevelForm.LevelRate
@@ -484,7 +488,7 @@ func UpdateSystemHandler(ctx *gin.Context) {
 	}
 
 	redisClient := redis.GetClient()
-	system := getSystemInRedis(ctx)
+	system := GetSystemInRedis(ctx)
 	switch updateSystemForm.UpdateField {
 	case "maxUserLevel":
 		system.MaxUserLevel = cast.ToInt(updateSystemForm.UpdateValue)

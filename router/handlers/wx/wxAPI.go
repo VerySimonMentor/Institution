@@ -21,7 +21,7 @@ type AccessToken struct {
 
 func GetAccessToken(wxConfig *config.WxConfig) string {
 	redisClient := redis.GetClient()
-	accessToken, err := redisClient.Get(context.Background(), accessTokenKey).Result()
+	accessToken, err := redisClient.Get(context.Background(), AccessTokenKey).Result()
 	if redis.CheckNil(err) {
 		resp, e := http.Get("https://api.weixin.qq.com/cgi-bin/token?grant_type=" + wxConfig.Grant_type + "&appid=" + wxConfig.Appid + "&secret=" + wxConfig.Secret)
 		if e != nil {
@@ -36,7 +36,7 @@ func GetAccessToken(wxConfig *config.WxConfig) string {
 		logs.GetInstance().Logger.Infof("token %+v", token)
 
 		accessToken = token.AccessToken
-		redisClient.Set(context.Background(), accessTokenKey, accessToken, 7200*time.Second)
+		redisClient.Set(context.Background(), AccessTokenKey, accessToken, 7200*time.Second)
 	} else if err != nil {
 		logs.GetInstance().Logger.Errorf("get access token error %s", err)
 		return ""
@@ -74,7 +74,7 @@ func GetPhoneNumber(code string, wxConfig *config.WxConfig) string {
 	json.Unmarshal(body, &phoneResp)
 	if phoneResp.ErrCode != 0 {
 		redisClient := redis.GetClient()
-		redisClient.Del(context.Background(), accessTokenKey)
+		redisClient.Del(context.Background(), AccessTokenKey)
 		accessToken = GetAccessToken(wxConfig)
 		if accessToken == "" {
 			logs.GetInstance().Logger.Errorf("get access token error")
@@ -121,7 +121,7 @@ type SessionForm struct {
 	Errcode    int    `json:"errcode"`
 }
 
-func code2Session(wxConfig *config.WxConfig, code string) string {
+func Code2Session(wxConfig *config.WxConfig, code string) string {
 	resp, err := http.Get("https://api.weixin.qq.com/sns/jscode2session?appid=" + wxConfig.Appid + "&secret=" + wxConfig.Secret + "&js_code=" + code + "&grant_type=authorization_code")
 	if err != nil {
 		logs.GetInstance().Logger.Errorf("get session key error %s", err)

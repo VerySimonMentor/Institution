@@ -414,7 +414,7 @@ func CreateUserHandler(ctx *gin.Context) {
 }
 
 func CreateSystemHandler(ctx *gin.Context) {
-	system := getSystemInRedis(ctx)
+	system := GetSystemInRedis(ctx)
 	var maxSchoolTypeId int
 	if len(system.SchoolTypeList) == 0 {
 		maxSchoolTypeId = 0

@@ -5,6 +5,7 @@ import (
 	"Institution/logs"
 	"Institution/mysql"
 	"Institution/redis"
+	"Institution/router/handlers/wx"
 	"context"
 	"encoding/json"
 	"net/http"
@@ -14,7 +15,7 @@ import (
 
 func CheckPasswordHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 	loginTocken := ctx.Query("loginTocken")
-	check, phoneNumber := CheckLoginTocken(wxConfig, loginTocken)
+	check, phoneNumber := wx.CheckLoginTocken(wxConfig, loginTocken)
 	if !check {
 		ctx.JSON(http.StatusBadRequest, gin.H{})
 		return
@@ -49,7 +50,7 @@ func InitPasswordHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 		return
 	}
 
-	check, phoneNumber := CheckLoginTocken(wxConfig, passwordForm.LoginTocken)
+	check, phoneNumber := wx.CheckLoginTocken(wxConfig, passwordForm.LoginTocken)
 	if !check {
 		ctx.JSON(http.StatusBadRequest, gin.H{})
 		return
@@ -76,7 +77,7 @@ func NewPasswordHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 		return
 	}
 
-	check, phoneNumber := CheckLoginTocken(wxConfig, passwordForm.LoginTocken)
+	check, phoneNumber := wx.CheckLoginTocken(wxConfig, passwordForm.LoginTocken)
 	if !check {
 		ctx.JSON(http.StatusBadRequest, gin.H{})
 		return

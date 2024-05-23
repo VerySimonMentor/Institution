@@ -5,7 +5,7 @@ import (
 	"Institution/router/handlers"
 	crud "Institution/router/handlers/CRUD"
 	"Institution/router/handlers/user"
-	"Institution/router/handlers/wx"
+	wxLogin "Institution/router/handlers/wx/login"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -32,23 +32,23 @@ func RouterInit(config *config.Config, rootPath string) *gin.Engine {
 	wxRouter := ginRouter.Group("/wx")
 	{
 		wxRouter.GET("/login", func(ctx *gin.Context) {
-			wx.FastLoginHandler(ctx, &config.Wx)
+			wxLogin.FastLoginHandler(ctx, &config.Wx)
 		})
 		wxRouter.GET("/checkTocken", func(ctx *gin.Context) {
-			wx.CheckLoginTockenHandler(ctx, &config.Wx)
+			wxLogin.CheckLoginTockenHandler(ctx, &config.Wx)
 		})
 		wxRouter.GET("/checkPassword", func(ctx *gin.Context) {
-			wx.CheckPasswordHandler(ctx, &config.Wx)
+			wxLogin.CheckPasswordHandler(ctx, &config.Wx)
 		})
 
 		wxRouter.POST("/login", func(ctx *gin.Context) {
-			wx.LoginHandler(ctx, &config.Wx)
+			wxLogin.LoginHandler(ctx, &config.Wx)
 		})
 		wxRouter.POST("/initPassword", func(ctx *gin.Context) {
-			wx.InitPasswordHandler(ctx, &config.Wx)
+			wxLogin.InitPasswordHandler(ctx, &config.Wx)
 		})
 		wxRouter.POST("/newPassword", func(ctx *gin.Context) {
-			wx.NewPasswordHandler(ctx, &config.Wx)
+			wxLogin.NewPasswordHandler(ctx, &config.Wx)
 		})
 	}
 

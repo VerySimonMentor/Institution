@@ -32,7 +32,7 @@ func ShowCountryHandler(ctx *gin.Context) {
 		return
 	}
 
-	countryList := getCountryInRedis(ctx)
+	countryList := GetCountryInRedis(ctx)
 	if countryList == nil {
 		return
 	}
@@ -96,7 +96,7 @@ func ShowProvinceHandler(ctx *gin.Context) {
 
 	usedProvince := make(map[int]struct{})
 	schoolKey := fmt.Sprintf(SchoolKey, country.CountryId)
-	school := getSchoolInRedis(ctx, schoolKey, country.CountryAndSchool)
+	school := GetSchoolInRedis(ctx, schoolKey, country.CountryAndSchool)
 	for _, s := range school {
 		if s.Province >= 0 {
 			usedProvince[s.Province] = struct{}{}
@@ -129,7 +129,7 @@ func ShowSchoolHandler(ctx *gin.Context) {
 	}
 
 	redisClient := redis.GetClient()
-	countryList := getCountryInRedis(ctx)
+	countryList := GetCountryInRedis(ctx)
 	if countryList == nil {
 		return
 	}
@@ -151,7 +151,7 @@ func ShowSchoolHandler(ctx *gin.Context) {
 	}
 
 	schoolKey := fmt.Sprintf(SchoolKey, country.CountryId)
-	schoolList := getSchoolInRedis(ctx, schoolKey, country.CountryAndSchool)
+	schoolList := GetSchoolInRedis(ctx, schoolKey, country.CountryAndSchool)
 	if schoolList == nil {
 		return
 	}
@@ -176,7 +176,7 @@ func ShowSchoolHandler(ctx *gin.Context) {
 		}
 	}
 
-	system := getSystemInRedis(ctx)
+	system := GetSystemInRedis(ctx)
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"results":        schoolResp,
@@ -187,7 +187,7 @@ func ShowSchoolHandler(ctx *gin.Context) {
 }
 
 func InitSchoolHandler(ctx *gin.Context) {
-	countryList := getCountryInRedis(ctx)
+	countryList := GetCountryInRedis(ctx)
 	allCountry := make([]string, 0, len(countryList))
 	if countryList == nil {
 		logs.GetInstance().Logger.Errorf("InitSchoolHandler error")
@@ -258,7 +258,7 @@ func ShowItemHandler(ctx *gin.Context) {
 	}
 
 	itemKey := fmt.Sprintf(ItemKey, country.CountryId, school.SchoolId)
-	itemList := getItemInRedis(ctx, itemKey, school.SchoolAndItem)
+	itemList := GetItemInRedis(ctx, itemKey, school.SchoolAndItem)
 	if len(itemList) == 0 {
 		ctx.JSON(http.StatusOK, gin.H{"results": []Item{}})
 		return
@@ -310,7 +310,7 @@ func InitItemHandler(ctx *gin.Context) {
 	}
 
 	allSchool := make([]string, len(country.CountryAndSchool))
-	schoolList := getSchoolInRedis(ctx, fmt.Sprintf(SchoolKey, country.CountryId), country.CountryAndSchool)
+	schoolList := GetSchoolInRedis(ctx, fmt.Sprintf(SchoolKey, country.CountryId), country.CountryAndSchool)
 	if schoolList == nil {
 		return
 	}
@@ -401,7 +401,7 @@ func ShowUserHandler(ctx *gin.Context) {
 		totalPage = len(userList)/pageShow.PageNum + 1
 	}
 
-	system := getSystemInRedis(ctx)
+	system := GetSystemInRedis(ctx)
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"results":      userList[start:end],
@@ -411,7 +411,7 @@ func ShowUserHandler(ctx *gin.Context) {
 }
 
 func ShowSystemHandler(ctx *gin.Context) {
-	system := getSystemInRedis(ctx)
+	system := GetSystemInRedis(ctx)
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"system": system,
