@@ -108,8 +108,8 @@ func GetCountryDetailHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 			} else if len(item.LevelRate) > 0 {
 				countryDetail.CountryItem[j].ItemDetail = fmt.Sprintf(item.LevelDescription, item.LevelRate[levelIndex].LevelRate)
 			}
-			countryDetailResp = append(countryDetailResp, countryDetail)
 		}
+		countryDetailResp = append(countryDetailResp, countryDetail)
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
