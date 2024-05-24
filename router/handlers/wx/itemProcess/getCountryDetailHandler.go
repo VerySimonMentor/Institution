@@ -103,7 +103,7 @@ func GetCountryDetailHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 					break
 				}
 			}
-			if item.LevelRate[levelIndex].IfNotCombine {
+			if len(item.LevelRate) > 0 && item.LevelRate[levelIndex].IfNotCombine {
 				countryDetail.CountryItem[j].ItemDetail = item.LevelRate[levelIndex].LevelRate
 			} else {
 				countryDetail.CountryItem[j].ItemDetail = fmt.Sprintf(item.LevelDescription, item.LevelRate[levelIndex].LevelRate)
