@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"regexp"
 
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cast"
@@ -32,6 +33,9 @@ type CountryItem struct {
 func GetCountryDetailHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 	loginTocken := ctx.Query("loginTocken")
 	countryListIndex := cast.ToInt64(ctx.Query("countryListIndex"))
+	selectedProvinceMapStr := ctx.Query("selectedProvinceMap")
+	selectedSchoolTypeMapStr := ctx.Query("selectedSchoolTypeMap")
+	searchContent := ctx.Query("searchContent")
 	check, phoneNumber := wx.CheckLoginTocken(wxConfig, loginTocken)
 	if !check {
 		ctx.JSON(http.StatusBadRequest, gin.H{})
@@ -53,8 +57,12 @@ func GetCountryDetailHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 
 	var country CRUD.Country
 	json.Unmarshal([]byte(countryStr), &country)
-	countryDetailResp := make([]CountryDetailResp, len(country.CountryAndSchool))
+	countryDetailResp := make([]CountryDetailResp, 0)
 	schoolKey := fmt.Sprintf(CRUD.SchoolKey, country.CountryId)
+	selectedProvinceMap, selectedSchoolTypeMap := make(map[int]bool), make(map[int]bool)
+	json.Unmarshal([]byte(selectedProvinceMapStr), &selectedProvinceMap)
+	json.Unmarshal([]byte(selectedSchoolTypeMapStr), &selectedSchoolTypeMap)
+
 	for i := range country.CountryAndSchool {
 		countryDetail := CountryDetailResp{}
 
@@ -66,6 +74,21 @@ func GetCountryDetailHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 		}
 		var school CRUD.School
 		json.Unmarshal([]byte(schoolStr), &school)
+		if _, ok := selectedProvinceMap[school.Province]; !ok {
+			continue
+		}
+		if _, ok := selectedSchoolTypeMap[school.SchoolType]; !ok {
+			continue
+		}
+		if searchContent != "" {
+			match1, _ := regexp.MatchString(searchContent, school.SchoolChiName)
+			match2, _ := regexp.MatchString(searchContent, school.SchoolEngName)
+			match3, _ := regexp.MatchString(searchContent, school.SchoolAbbreviation)
+			if !match1 && !match2 && !match3 {
+				continue
+			}
+		}
+
 		countryDetail.SchoolChiName = school.SchoolChiName
 		countryDetail.SchoolEngName = school.SchoolEngName
 		countryDetail.SchoolType = system.SchoolTypeList[school.SchoolType].SchoolTypeName
@@ -95,7 +118,7 @@ func GetCountryDetailHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 			} else {
 				countryDetail.CountryItem[j].ItemDetail = fmt.Sprintf(item.LevelDescription, item.LevelRate[levelIndex].LevelRate)
 			}
-			countryDetailResp[i] = countryDetail
+			countryDetailResp = append(countryDetailResp, countryDetail)
 		}
 	}
 
