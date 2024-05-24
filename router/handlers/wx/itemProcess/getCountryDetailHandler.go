@@ -63,17 +63,10 @@ func GetCountryDetailHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 	json.Unmarshal([]byte(selectedProvinceMapStr), &selectedProvinceMap)
 	json.Unmarshal([]byte(selectedSchoolTypeMapStr), &selectedSchoolTypeMap)
 
-	for i := range country.CountryAndSchool {
+	schoolList := CRUD.GetSchoolInRedis(ctx, schoolKey, country.CountryAndSchool)
+	for _, school := range schoolList {
 		countryDetail := CountryDetailResp{}
 
-		schoolStr, err := redisClient.LIndex(context.Background(), schoolKey, cast.ToInt64(i)).Result()
-		if err != nil {
-			logs.GetInstance().Logger.Errorf("get school error %v", err)
-			ctx.JSON(http.StatusBadRequest, gin.H{})
-			return
-		}
-		var school CRUD.School
-		json.Unmarshal([]byte(schoolStr), &school)
 		if _, ok := selectedProvinceMap[school.Province]; !ok && len(selectedProvinceMap) != 0 {
 			continue
 		}
@@ -94,18 +87,9 @@ func GetCountryDetailHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 		countryDetail.SchoolType = system.SchoolTypeList[school.SchoolType].SchoolTypeName
 
 		countryDetail.CountryItem = make([]CountryItem, len(school.SchoolAndItem))
-		for j := range school.SchoolAndItem {
-			itemKey := fmt.Sprintf(CRUD.ItemKey, country.CountryId, school.SchoolId)
-			logs.GetInstance().Logger.Infof("itemKey %v j %d", itemKey, j)
-			itemStr, err := redisClient.LIndex(context.Background(), itemKey, cast.ToInt64(j)).Result()
-			if err != nil {
-				logs.GetInstance().Logger.Errorf("get item error %v", err)
-				ctx.JSON(http.StatusBadRequest, gin.H{})
-				return
-			}
-
-			var item CRUD.Item
-			json.Unmarshal([]byte(itemStr), &item)
+		itemKey := fmt.Sprintf(CRUD.ItemKey, country.CountryId, school.SchoolId)
+		itemList := CRUD.GetItemInRedis(ctx, itemKey, school.SchoolAndItem)
+		for j, item := range itemList {
 			countryDetail.CountryItem[j].ItemName = item.ItemName
 			countryDetail.CountryItem[j].ItemRemark = item.ItemRemark
 			var levelIndex int
