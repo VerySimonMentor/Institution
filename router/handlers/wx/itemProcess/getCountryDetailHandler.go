@@ -89,7 +89,9 @@ func GetCountryDetailHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 
 		countryDetail.SchoolChiName = school.SchoolChiName
 		countryDetail.SchoolEngName = school.SchoolEngName
-		countryDetail.SchoolType = system.SchoolTypeList[school.SchoolType].SchoolTypeName
+		if school.SchoolType > 0 {
+			countryDetail.SchoolType = system.SchoolTypeList[school.SchoolType].SchoolTypeName
+		}
 
 		countryDetail.CountryItem = make([]CountryItem, len(school.SchoolAndItem))
 		itemKey := fmt.Sprintf(CRUD.ItemKey, country.CountryId, school.SchoolId)
