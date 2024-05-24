@@ -95,7 +95,9 @@ func GetCountryDetailHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 
 		countryDetail.CountryItem = make([]CountryItem, len(school.SchoolAndItem))
 		for j := range school.SchoolAndItem {
-			itemStr, err := redisClient.LIndex(context.Background(), fmt.Sprintf(CRUD.ItemKey, country.CountryId, school.SchoolId), cast.ToInt64(j)).Result()
+			itemKey := fmt.Sprintf(CRUD.ItemKey, country.CountryId, school.SchoolId)
+			logs.GetInstance().Logger.Infof("itemKey %v j %d", itemKey, j)
+			itemStr, err := redisClient.LIndex(context.Background(), itemKey, cast.ToInt64(j)).Result()
 			if err != nil {
 				logs.GetInstance().Logger.Errorf("get item error %v", err)
 				ctx.JSON(http.StatusBadRequest, gin.H{})
