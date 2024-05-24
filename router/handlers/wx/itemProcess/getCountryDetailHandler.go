@@ -64,6 +64,7 @@ func GetCountryDetailHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 	json.Unmarshal([]byte(selectedSchoolTypeMapStr), &selectedSchoolTypeMap)
 
 	for i := range country.CountryAndSchool {
+		logs.GetInstance().Logger.Info(i)
 		countryDetail := CountryDetailResp{}
 
 		schoolStr, err := redisClient.LIndex(context.Background(), schoolKey, cast.ToInt64(i)).Result()
@@ -109,10 +110,15 @@ func GetCountryDetailHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 			var levelIndex int
 			for i := len(item.LevelRate) - 1; i >= 0; i++ {
 				if item.LevelRate[i].LevelId < user.UserLevel {
-					levelIndex = i + 1
+					if i == len(item.LevelRate)-1 {
+						levelIndex = i
+					} else {
+						levelIndex = i + 1
+					}
 					break
 				}
 			}
+			logs.GetInstance().Logger.Infof("levelIndex %d", levelIndex)
 			if item.LevelRate[levelIndex].IfNotCombine {
 				countryDetail.CountryItem[j].ItemDetail = item.LevelRate[levelIndex].LevelRate
 			} else {
