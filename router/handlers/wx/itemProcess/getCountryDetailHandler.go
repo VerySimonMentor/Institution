@@ -62,6 +62,8 @@ func GetCountryDetailHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 	selectedProvinceMap, selectedSchoolTypeMap := make(map[int]bool), make(map[int]bool)
 	json.Unmarshal([]byte(selectedProvinceMapStr), &selectedProvinceMap)
 	json.Unmarshal([]byte(selectedSchoolTypeMapStr), &selectedSchoolTypeMap)
+	logs.GetInstance().Logger.Infof("selectedProvinceMap %v", selectedProvinceMap)
+	logs.GetInstance().Logger.Infof("selectedSchoolTypeMap %v", selectedSchoolTypeMap)
 
 	schoolList := CRUD.GetSchoolInRedis(ctx, schoolKey, country.CountryAndSchool)
 	for _, school := range schoolList {
