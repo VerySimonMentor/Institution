@@ -60,7 +60,10 @@ func GetCountryDetailHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 	countryDetailResp := make([]CountryDetailResp, 0)
 	schoolKey := fmt.Sprintf(CRUD.SchoolKey, country.CountryId)
 	selectedProvinceMap, selectedSchoolTypeMap := make(map[int]bool), make(map[int]bool)
-	json.Unmarshal([]byte(selectedProvinceMapStr), &selectedProvinceMap)
+	e := json.Unmarshal([]byte(selectedProvinceMapStr), &selectedProvinceMap)
+	if e != nil {
+		logs.GetInstance().Logger.Errorf("selectedProvinceMapStr %v", e)
+	}
 	json.Unmarshal([]byte(selectedSchoolTypeMapStr), &selectedSchoolTypeMap)
 	logs.GetInstance().Logger.Infof("selectedProvinceMap %v", selectedProvinceMap)
 	logs.GetInstance().Logger.Infof("selectedSchoolTypeMap %v", selectedSchoolTypeMap)
