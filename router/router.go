@@ -5,6 +5,7 @@ import (
 	"Institution/router/handlers"
 	crud "Institution/router/handlers/CRUD"
 	"Institution/router/handlers/user"
+	wxProcess "Institution/router/handlers/wx/itemProcess"
 	wxLogin "Institution/router/handlers/wx/login"
 	"net/http"
 
@@ -39,6 +40,12 @@ func RouterInit(config *config.Config, rootPath string) *gin.Engine {
 		})
 		wxRouter.GET("/checkPassword", func(ctx *gin.Context) {
 			wxLogin.CheckPasswordHandler(ctx, &config.Wx)
+		})
+		wxRouter.GET("/getCountry", func(ctx *gin.Context) {
+			wxProcess.GetCountryHandler(ctx, &config.Wx)
+		})
+		wxRouter.GET("/getCountryDetail", func(ctx *gin.Context) {
+			wxProcess.GetCountryDetailHandler(ctx, &config.Wx)
 		})
 
 		wxRouter.POST("/login", func(ctx *gin.Context) {
