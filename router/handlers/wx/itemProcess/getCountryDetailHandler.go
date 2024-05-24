@@ -36,7 +36,6 @@ func GetCountryDetailHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 	selectedProvinceMapStr := ctx.Query("selectedProvinceMap")
 	selectedSchoolTypeMapStr := ctx.Query("selectedSchoolTypeMap")
 	searchContent := ctx.Query("searchContent")
-	logs.GetInstance().Logger.Infof("countryListIndex %d, serachContent %s", countryListIndex, searchContent)
 	check, phoneNumber := wx.CheckLoginTocken(wxConfig, loginTocken)
 	if !check {
 		ctx.JSON(http.StatusBadRequest, gin.H{})
@@ -75,10 +74,10 @@ func GetCountryDetailHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 		}
 		var school CRUD.School
 		json.Unmarshal([]byte(schoolStr), &school)
-		if _, ok := selectedProvinceMap[school.Province]; !ok {
+		if _, ok := selectedProvinceMap[school.Province]; !ok && len(selectedProvinceMap) != 0 {
 			continue
 		}
-		if _, ok := selectedSchoolTypeMap[school.SchoolType]; !ok {
+		if _, ok := selectedSchoolTypeMap[school.SchoolType]; !ok && len(selectedSchoolTypeMap) != 0 {
 			continue
 		}
 		if searchContent != "" {
