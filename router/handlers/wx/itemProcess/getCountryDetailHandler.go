@@ -18,6 +18,7 @@ import (
 )
 
 type CountryDetailResp struct {
+	SchoolId      int           `json:"schoolId"`
 	SchoolChiName string        `json:"schoolChiName"`
 	SchoolEngName string        `json:"schoolEngName"`
 	SchoolType    string        `json:"schoolType"`
@@ -65,8 +66,6 @@ func GetCountryDetailHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 		logs.GetInstance().Logger.Errorf("selectedProvinceMapStr %v", e)
 	}
 	json.Unmarshal([]byte(selectedSchoolTypeMapStr), &selectedSchoolTypeMap)
-	logs.GetInstance().Logger.Infof("selectedProvinceMap %v", selectedProvinceMap)
-	logs.GetInstance().Logger.Infof("selectedSchoolTypeMap %v", selectedSchoolTypeMap)
 
 	schoolList := CRUD.GetSchoolInRedis(ctx, schoolKey, country.CountryAndSchool)
 	for _, school := range schoolList {
@@ -86,12 +85,12 @@ func GetCountryDetailHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 				logs.GetInstance().Logger.Errorf("searchContent %v err1 %v err2 %v err3 %v", searchContent, err1, err2, err3)
 				continue
 			}
-			logs.GetInstance().Logger.Infof("match1 %v match2 %v match3 %v", match1, match2, match3)
 			if !match1 && !match2 && !match3 {
 				continue
 			}
 		}
 
+		countryDetail.SchoolId = school.SchoolId
 		countryDetail.SchoolChiName = school.SchoolChiName
 		countryDetail.SchoolEngName = school.SchoolEngName
 		if school.SchoolType > 0 {
