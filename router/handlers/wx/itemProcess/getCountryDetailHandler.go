@@ -95,7 +95,9 @@ func GetCountryDetailHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 		countryDetail.SchoolId = school.SchoolId
 		countryDetail.SchoolChiName = school.SchoolChiName
 		countryDetail.SchoolEngName = school.SchoolEngName
-		countryDetail.SchoolProvince = country.Province[school.Province-1].ChiName
+		if school.Province > 0 {
+			countryDetail.SchoolProvince = country.Province[school.Province-1].ChiName
+		}
 		countryDetail.OfficialWebLink = school.OfficialWebLink
 		if school.SchoolType > 0 {
 			countryDetail.SchoolType = system.SchoolTypeList[school.SchoolType-1].SchoolTypeName
