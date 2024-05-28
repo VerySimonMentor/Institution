@@ -18,11 +18,13 @@ import (
 )
 
 type CountryDetailResp struct {
-	SchoolId      int           `json:"schoolId"`
-	SchoolChiName string        `json:"schoolChiName"`
-	SchoolEngName string        `json:"schoolEngName"`
-	SchoolType    string        `json:"schoolType"`
-	CountryItem   []CountryItem `json:"countryItems"`
+	SchoolId        int           `json:"schoolId"`
+	SchoolChiName   string        `json:"schoolChiName"`
+	SchoolEngName   string        `json:"schoolEngName"`
+	SchoolType      string        `json:"schoolType"`
+	SchoolProvince  string        `json:"schoolProvince"`
+	OfficialWebLink string        `json:"officialWebLink"`
+	CountryItem     []CountryItem `json:"countryItems"`
 }
 
 type CountryItem struct {
@@ -93,6 +95,8 @@ func GetCountryDetailHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 		countryDetail.SchoolId = school.SchoolId
 		countryDetail.SchoolChiName = school.SchoolChiName
 		countryDetail.SchoolEngName = school.SchoolEngName
+		countryDetail.SchoolProvince = country.Province[school.Province-1].ChiName
+		countryDetail.OfficialWebLink = school.OfficialWebLink
 		if school.SchoolType > 0 {
 			countryDetail.SchoolType = system.SchoolTypeList[school.SchoolType-1].SchoolTypeName
 		}
