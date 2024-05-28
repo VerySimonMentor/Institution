@@ -71,10 +71,10 @@ func GetCountryDetailHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 	for _, school := range schoolList {
 		countryDetail := CountryDetailResp{}
 
-		if _, ok := selectedProvinceMap[school.Province]; !ok && len(selectedProvinceMap) != 0 {
+		if _, ok := selectedProvinceMap[school.Province-1]; !ok && len(selectedProvinceMap) != 0 {
 			continue
 		}
-		if _, ok := selectedSchoolTypeMap[school.SchoolType]; !ok && len(selectedSchoolTypeMap) != 0 {
+		if _, ok := selectedSchoolTypeMap[school.SchoolType-1]; !ok && len(selectedSchoolTypeMap) != 0 {
 			continue
 		}
 		if searchContent != "" {
