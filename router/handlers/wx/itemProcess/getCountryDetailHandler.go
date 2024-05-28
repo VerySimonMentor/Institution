@@ -79,9 +79,14 @@ func GetCountryDetailHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 			continue
 		}
 		if searchContent != "" {
-			match1, _ := regexp.MatchString(searchContent, school.SchoolChiName)
-			match2, _ := regexp.MatchString(searchContent, school.SchoolEngName)
-			match3, _ := regexp.MatchString(searchContent, school.SchoolAbbreviation)
+			match1, err1 := regexp.MatchString(searchContent, school.SchoolChiName)
+			match2, err2 := regexp.MatchString(searchContent, school.SchoolEngName)
+			match3, err3 := regexp.MatchString(searchContent, school.SchoolAbbreviation)
+			if err1 != nil || err2 != nil || err3 != nil {
+				logs.GetInstance().Logger.Errorf("searchContent %v err1 %v err2 %v err3 %v", searchContent, err1, err2, err3)
+				continue
+			}
+			logs.GetInstance().Logger.Infof("match1 %v match2 %v match3 %v", match1, match2, match3)
 			if !match1 && !match2 && !match3 {
 				continue
 			}
