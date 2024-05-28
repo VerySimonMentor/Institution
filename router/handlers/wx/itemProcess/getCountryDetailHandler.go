@@ -117,7 +117,18 @@ func GetCountryDetailHandler(ctx *gin.Context, wxConfig *config.WxConfig) {
 			if len(item.LevelRate) > 0 && item.LevelRate[levelIndex].IfNotCombine {
 				countryDetail.CountryItem[j].ItemDetail = item.LevelRate[levelIndex].LevelRate
 			} else if len(item.LevelRate) > 0 {
-				countryDetail.CountryItem[j].ItemDetail = fmt.Sprintf(item.LevelDescription, item.LevelRate[levelIndex].LevelRate)
+				combine := false
+				for k := 2; k < len(item.LevelDescription); k++ {
+					if item.LevelDescription[k] == 's' && item.LevelDescription[k-1] == '%' && item.LevelDescription[k-2] != '%' {
+						combine = true
+						break
+					}
+				}
+				if combine {
+					countryDetail.CountryItem[j].ItemDetail = fmt.Sprintf(item.LevelDescription, item.LevelRate[levelIndex].LevelRate)
+				} else {
+					countryDetail.CountryItem[j].ItemDetail = item.LevelDescription
+				}
 			}
 		}
 		countryDetailResp = append(countryDetailResp, countryDetail)
