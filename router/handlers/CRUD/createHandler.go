@@ -306,7 +306,6 @@ func PasteItemHandler(ctx *gin.Context) {
 		return
 	}
 	tx.Commit()
-	logs.GetInstance().Logger.Infof("itemId %v", itemSQL.ItemId)
 
 	var levelRate []Level
 	json.Unmarshal(itemSQL.LevelRate, &levelRate)
