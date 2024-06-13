@@ -30,17 +30,20 @@ func CreateCountryHandler(ctx *gin.Context) {
 		Province:         []byte("{}"),
 	}
 
+	tx := mysqlClient.Begin()
 	if err := mysqlClient.Create(&countrySQL).Error; err != nil {
+		tx.Rollback()
 		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "创建失败"})
 		logs.GetInstance().Logger.Errorf("CreateCountryHandler error %s", err)
 		return
 	}
-
 	if err := mysqlClient.Last(&countrySQL).Error; err != nil {
+		tx.Rollback()
 		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "创建失败"})
 		logs.GetInstance().Logger.Errorf("CreateCountryHandler error %s", err)
 		return
 	}
+	tx.Commit()
 	// if !checkCountryInRedis(ctx) {
 
 	// }
@@ -95,16 +98,20 @@ func CreateSchoolHandler(ctx *gin.Context) {
 		SchoolAndItem:      []byte("{}"),
 	}
 
+	tx := mysqlClient.Begin()
 	if err := mysqlClient.Create(&schoolSQL).Error; err != nil {
+		tx.Rollback()
 		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "创建失败"})
 		logs.GetInstance().Logger.Errorf("CreateSchoolHandler error %s", err)
 		return
 	}
 	if err := mysqlClient.Last(&schoolSQL).Error; err != nil {
+		tx.Rollback()
 		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "创建失败"})
 		logs.GetInstance().Logger.Errorf("CreateCountryHandler error %s", err)
 		return
 	}
+	tx.Commit()
 
 	schoolByte, _ := json.Marshal(School{
 		SchoolId:           schoolSQL.SchoolId,
@@ -384,16 +391,20 @@ func CreateUserHandler(ctx *gin.Context) {
 		StudentCount: 0,
 	}
 
+	tx := mysqlClient.Begin()
 	if err := mysqlClient.Create(&userSQL).Error; err != nil {
+		tx.Rollback()
 		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "创建失败"})
 		logs.GetInstance().Logger.Errorf("CreateUserHandler error %s", err)
 		return
 	}
 	if err := mysqlClient.Last(&userSQL).Error; err != nil {
+		tx.Rollback()
 		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "创建失败"})
 		logs.GetInstance().Logger.Errorf("CreateUserHandler error %s", err)
 		return
 	}
+	tx.Commit()
 
 	redisClinet := redis.GetClient()
 	user := User{
