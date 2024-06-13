@@ -186,16 +186,20 @@ func CreateItemHandler(ctx *gin.Context) {
 		ItemRemark:       "",
 	}
 
+	tx := mysqlClient.Begin()
 	if err := mysqlClient.Create(&itemSQL).Error; err != nil {
+		tx.Rollback()
 		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "创建失败"})
 		logs.GetInstance().Logger.Errorf("CreateItemHandler error %s", err)
 		return
 	}
 	if err := mysqlClient.Last(&itemSQL).Error; err != nil {
+		tx.Rollback()
 		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "创建失败"})
 		logs.GetInstance().Logger.Errorf("CreateItemHandler error %s", err)
 		return
 	}
+	tx.Commit()
 
 	itemByte, _ := json.Marshal(Item{
 		ItemId:           itemSQL.ItemId,
@@ -281,16 +285,20 @@ func PasteItemHandler(ctx *gin.Context) {
 		ItemRemark:       pasteItemForm.ItemRemark,
 	}
 
+	tx := mysqlClient.Begin()
 	if err := mysqlClient.Create(&itemSQL).Error; err != nil {
+		tx.Rollback()
 		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "创建失败"})
 		logs.GetInstance().Logger.Errorf("CreateItemHandler error %s", err)
 		return
 	}
 	if err := mysqlClient.Last(&itemSQL).Error; err != nil {
+		tx.Rollback()
 		ctx.JSON(http.StatusInternalServerError, gin.H{"err": "创建失败"})
 		logs.GetInstance().Logger.Errorf("CreateItemHandler error %s", err)
 		return
 	}
+	tx.Commit()
 	logs.GetInstance().Logger.Infof("itemId %v", itemSQL.ItemId)
 
 	var levelRate []Level
