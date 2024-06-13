@@ -291,6 +291,7 @@ func PasteItemHandler(ctx *gin.Context) {
 		logs.GetInstance().Logger.Errorf("CreateItemHandler error %s", err)
 		return
 	}
+	logs.GetInstance().Logger.Infof("itemId %v", itemSQL.ItemId)
 
 	var levelRate []Level
 	json.Unmarshal(itemSQL.LevelRate, &levelRate)
